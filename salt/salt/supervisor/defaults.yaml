@@ -1,0 +1,8 @@
+lxc:
+  conf:
+    arch: amd64
+  create:
+    source:
+      - centos:latest
+      - debian:latest
+      - ubuntu:latest

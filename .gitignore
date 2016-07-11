@@ -1,3 +1,10 @@
+#Sync script
+script/
+
+#python env
+pyenv/
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

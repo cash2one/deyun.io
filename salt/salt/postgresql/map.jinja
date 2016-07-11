@@ -1,0 +1,25 @@
+# vi: set ft=json.jinja :
+
+{% set map = salt['grains.filter_by']({
+  'Debian': {
+    'pkg': {
+      'name':          'postgresql',
+    },
+  },
+   'Kali':{
+    'pkg':{
+      'name':          'postgresql',
+    },
+  },
+  'MacOS': {
+    'pkg': {
+      'name':          'postgresql',
+    },
+  },
+  'RedHat': {
+    'pkg': {
+      'name':          'postgresql-server',
+    },
+  },
+}, merge=salt['config.get']('postgresql')) %}
+
