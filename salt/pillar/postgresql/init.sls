@@ -19,4 +19,5 @@ postgresql:
     initdb: service postgresql initdb
   data_dir: /data/postgresql 
   initdb_args: --data-checksum
-  
+  acls:
+    -  
