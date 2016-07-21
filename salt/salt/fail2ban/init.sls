@@ -1,7 +1,11 @@
 fail2ban-pkg:
   pkg.installed:
     - name: fail2ban
-
+  service.running:
+    - enable: True
+    - reload: True
+    - watch:
+      - pkg: fail2ban    
 #fail2ban-config:
 #  file:
 #    - managed

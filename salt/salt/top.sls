@@ -13,3 +13,6 @@ base:
   'Spider':
     - match: nodegroup
     - roles.common
+  'DO':
+    - match: compound
+    - roles.common

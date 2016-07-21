@@ -1,0 +1,6 @@
+{% set minions = salt['roles.dict']('zookeeper-server') -%}
+{% set socks = [] -%}
+{% for minion in minions['zookeeper-server'] -%}
+{% do  socks.append(minion + ':2181') -%}
+{% endfor -%}
+zk://{{ socks|join(',') }}/mesos
