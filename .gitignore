@@ -3,7 +3,7 @@ script/
 
 #python env
 pyenv/
-
+.coding-ide/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
