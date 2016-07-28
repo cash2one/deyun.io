@@ -1,0 +1,30 @@
+{
+	"folders":
+	[
+		{
+			"path": "/fenghua/git/Salt-MWDS"
+		}
+	],
+  "settings": 
+  {
+          // ...
+          "python_interpreter": "/fenghua/git/Salt-MWDS/env/bin/python",
+
+          "python_package_paths": [
+              "/fenghua/git/Salt-MWDS", 
+              "/fenghua/git/Salt-MWDS/static", 
+              "/fenghua/git/Salt-MWDS/env/lib", 
+              "/fenghua/git/Salt-MWDS/env/lib/python3.4", 
+              "/fenghua/git/Salt-MWDS/env/lib/python3.4/site-packages" 
+              ]
+      },
+  "build_systems":
+  [
+  {
+         "name": "Run Tests",
+         "cmd": ["/fenghua/git/Salt-MWDS/env/bin/python" , "-u", "$file"],
+         "selector": "source.smwds"
+     }
+     
+  ]
+}
