@@ -18,13 +18,5 @@
               "/fenghua/git/Salt-MWDS/env/lib/python3.4/site-packages" 
               ]
       },
-  "build_systems":
-  [
-  {
-         "name": "Run Tests",
-         "cmd": ["/fenghua/git/Salt-MWDS/env/bin/python" , "-u", "$file"],
-         "selector": "source.smwds"
-     }
-     
-  ]
+  
 }

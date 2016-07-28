@@ -6,7 +6,7 @@ source /fenghua/git/Salt-MWDS/env/bin/activate
 
 if [ $1 == 'run' ]; then
     echo "running"
-    /fenghua/git/Salt-MWDS/env/bin/python /fenghua/git/Salt-MWDS/app.py &
+    /fenghua/git/Salt-MWDS/env/bin/python /fenghua/git/Salt-MWDS/smwds/app.py &
     echo $!  > "/fenghua/git/Salt-MWDS/pid.tmp"
     exit 0
 fi
