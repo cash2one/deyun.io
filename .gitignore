@@ -69,3 +69,5 @@ target/
 #sublime 2 files
 *.sublime-workspace
 *.sublime-project 
+
+log/

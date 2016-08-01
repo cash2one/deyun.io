@@ -23,21 +23,39 @@
             <div>
 
                 <h1 class="logo-name">IN+</h1>
-
+                {% if failed_auth %}
+                    <div class="alert alert-danger" role="alert">
+                    <b>ERROR:</b> Invalid Email or Password. <!--<a href="/signup">Sign Up</a> a new account?-->
+                    </div>
+                {% endif %}
+                {% for message in form.name.errors %}
+                    <div class="alert alert-danger" role="alert">
+                    <b>ERROR:</b> {{ message }}
+                    </div>
+                {% endfor %}
+                {% for message in form.password.errors %}
+                    <div class="alert alert-danger" role="alert">
+                    <b>ERROR:</b> {{ message }}
+                    </div>
+                {% endfor %}
             </div>
             <h3>测试</h3>
             <p>Perfectly designed and precisely prepared admin theme with over 50 pages with extra new web app views.
                 <!--Continually expanded and constantly improved Inspinia Admin Them (IN+)-->
             </p>
             <p>Login in. To see it in action.</p>
-            <form class="m-t" role="form" action="index.html">
+            <!--<form class="m-t" role="form" action="index.html">-->
+            <form class="m-t" role="form" action="{{ url_for('frontend.login') }}" method="post">
+                {{ form.hidden_tag() }}
                 <div class="form-group">
-                    <input type="email" class="form-control" placeholder="Username" required="">
-                </div>
+                    {{ form.name(size=20, class="form-control") }}
+                    <!--<input type="email" class="form-control" placeholder="Username" required="">-->
+                </div
                 <div class="form-group">
-                    <input type="password" class="form-control" placeholder="Password" required="">
+                    <!--<input type="password" class="form-control" placeholder="Password" required="">-->
+                    {{ form.password(size=15, class="form-control") }}
                 </div>
-                <button type="submit" class="btn btn-primary block full-width m-b">Login</button>
+                <button type="submit" class="btn btn-primary block full-width m-b " name="do_action" value="login">Login</button>
 
                 <a href="login.html#"><small>Forgot password?</small></a>
                 <p class="text-muted text-center"><small>Do not have an account?</small></p>
