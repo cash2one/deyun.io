@@ -22,7 +22,7 @@
         <div>
             <div>
 
-                <h1 class="logo-name">IN+</h1>
+                <h1 class="logo-name">Ss+</h1>
                 {% if failed_auth %}
                     <div class="alert alert-danger" role="alert">
                     <b>ERROR:</b> Invalid Email or Password. <!--<a href="/signup">Sign Up</a> a new account?-->
@@ -50,11 +50,16 @@
                 <div class="form-group">
                     {{ form.name(size=20, class="form-control") }}
                     <!--<input type="email" class="form-control" placeholder="Username" required="">-->
-                </div
+                </div>
+                
                 <div class="form-group">
                     <!--<input type="password" class="form-control" placeholder="Password" required="">-->
-                    {{ form.password(size=15, class="form-control") }}
+                    {{ form.password(size=20, class="form-control") }}
                 </div>
+                <div  class="form-group">
+                    <p>{{ form.remember_me(class="text-muted text-center") }} remember me</p> 
+                </div>
+
                 <button type="submit" class="btn btn-primary block full-width m-b " name="do_action" value="login">Login</button>
 
                 <a href="login.html#"><small>Forgot password?</small></a>

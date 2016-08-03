@@ -9,10 +9,23 @@ frontend = Blueprint('frontend', __name__, template_folder='../templates')
 #frontend = Blueprint('frontend', __name__)
 STATIC_URL_ROOT = '//127.0.0.1/static/'
 
+@frontend.before_request
+def frontend_before_request():
+    g.user = current_user
+
 
 @frontend.route('/')
+@frontend.route('/index')
+@login_required
 def index():
-    return render_template('/index.html')
+    index_data = [{ 
+                  'user': {
+                              'name': session['username'],
+                              'remember_me': session['remember_me']
+                            }, 
+                  'text': 'Bootstrap is beautiful, and Flask is cool!' 
+                  }]
+    return render_template('index.html',index_data=index_data)
 
 
   
@@ -20,9 +33,9 @@ def index():
 
 @frontend.route('/login', methods=['GET', 'POST'])
 def login():
-    #if g.user is not None and g.user.is_authenticated():
-    #    return redirect(url_for('index'))
-
+    if g.user is not None and g.user.is_authenticated:
+       return redirect(url_for('frontend.index'))
+   
 
     form = LoginForm()
     
@@ -43,3 +56,8 @@ def login():
     return render_template('login.html',form=form)
 
 
+@frontend.route('/logout')
+def logout():
+
+    logout_user()
+    return redirect(url_for('frontend.index'))
