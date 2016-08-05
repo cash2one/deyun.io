@@ -1,0 +1,16 @@
+{% extends "menu.html" %}
+{% set active_page = "index" %}
+{% block content %}
+
+    <div class="middle-box text-center animated fadeInDown">
+        <h1>200</h1>
+        <h3 class="font-bold">Under Construction</h3>
+
+        <div class="error-desc">
+            This page is under development. Hope to see it soon<br/>
+            You can go back to main page: <br/><a href="{{ url_for('frontend.index') }}" class="btn btn-primary m-t">main</a>
+        </div>
+    </div>
+
+
+{% endblock %}
