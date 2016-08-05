@@ -1,4 +1,4 @@
-from flask import Flask,render_template
+from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_script import Manager
 from config import DefaultConfig
@@ -13,7 +13,6 @@ app = Flask(__name__)
 bootstrap = Bootstrap(app)
 
 
-
 def create_app(config=None, app_name=None):
     """Create a Flask app."""
 
@@ -21,11 +20,11 @@ def create_app(config=None, app_name=None):
         app_name = DefaultConfig.PROJECT
 
     app = Flask(
-        app_name, 
+        app_name,
         instance_path=INSTANCE_FOLDER_PATH,
         instance_relative_config=True,
         static_url_path='/_static'
-        )
+    )
     configure_app(app, config)
     configure_hook(app)
     configure_blueprints(app)
@@ -33,7 +32,6 @@ def create_app(config=None, app_name=None):
     configure_logging(app)
     configure_template_filters(app)
     configure_error_handlers(app)
-    
 
     return app
 
@@ -53,11 +51,12 @@ def configure_app(app, config=None):
     # Use instance folder instead of env variables to make deployment easier.
     #app.config.from_envvar('%s_APP_CONFIG' % DefaultConfig.PROJECT.upper(), silent=True)
 
+
 def configure_extensions(app):
         # flask-sqlalchemy
     db.init_app(app)
 
-        # Sentry
+    # Sentry
     if app.config['SENTRY_DSN']:
         sentry.init(app, dsn=app.config['SENTRY_DSN'])
 
@@ -77,15 +76,17 @@ def configure_hook(app):
     def before_request():
         pass
 
+
 def configure_blueprints(app):
     """Configure blueprints in vies."""
 
-    #from user import user
+    from user import user
     from frontend import frontend
-    #from api import api
+    from api import api
 
-    #for bp in [user, frontend, api]:
-    app.register_blueprint(frontend)
+    for bp in [user, frontend, api]:
+        app.register_blueprint(bp)
+
 
 def configure_template_filters(app):
     """Configure filters."""
@@ -98,20 +99,21 @@ def configure_template_filters(app):
 def configure_logging(app):
     """Configure file(info) and email(error) logging."""
 
-    #if app.debug or app.testing:
-            #Skip debug and test mode. Just check standard output.
-            #return
+    # if app.debug or app.testing:
+    # Skip debug and test mode. Just check standard output.
+    # return
 
     import logging
     import os
     from logging.handlers import SMTPHandler
 
-        # Set info level on logger, which might be overwritten by handers.
-        # Suppress DEBUG messages.
+    # Set info level on logger, which might be overwritten by handers.
+    # Suppress DEBUG messages.
     app.logger.setLevel(logging.DEBUG)
 
     info_log = os.path.join(app.config['LOG_FOLDER'], 'info.log')
-    info_file_handler = logging.handlers.RotatingFileHandler(info_log, maxBytes=100000, backupCount=10)
+    info_file_handler = logging.handlers.RotatingFileHandler(
+        info_log, maxBytes=100000, backupCount=10)
     info_file_handler.setLevel(logging.DEBUG)
     info_file_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s '
@@ -119,33 +121,33 @@ def configure_logging(app):
     )
     app.logger.addHandler(info_file_handler)
 
-        # Testing
-        #app.logger.info("testing info.")
-        #
-    #mail_handler = SMTPHandler(app.config['MAIL_SERVER'],
+    # Testing
+    #app.logger.info("testing info.")
+    #
+    # mail_handler = SMTPHandler(app.config['MAIL_SERVER'],
     #                            app.config['MAIL_USERNAME'],
     #                            app.config['ADMINS'],
     #                            'Your Application Failed!',
     #                            (app.config['MAIL_USERNAME'],
     #                            app.config['MAIL_PASSWORD']))
-    #mail_handler.setLevel(logging.ERROR)
-    #mail_handler.setFormatter(logging.Formatter(
+    # mail_handler.setLevel(logging.ERROR)
+    # mail_handler.setFormatter(logging.Formatter(
     #    '%(asctime)s %(levelname)s: %(message)s '
     #    '[in %(pathname)s:%(lineno)d]')
     #)
-    #app.logger.addHandler(mail_handler)
+    # app.logger.addHandler(mail_handler)
+
 
 def configure_error_handlers(app):
 
     @app.errorhandler(404)
     def page_not_found(error):
-        return render_template("404.html",e = error), 404
+        return render_template("404.html", e=error), 404
 
 
 def initdb():
-        db.drop_all()
-        db.create_all()
-
+    db.drop_all()
+    db.create_all()
 
 
 if __name__ == '__main__':

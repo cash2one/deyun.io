@@ -33,7 +33,7 @@ SEX_TYPES = {
 }
 SEX_TYPES = OrderedDict(sorted(SEX_TYPES.items()))
 
-INSTANCE_FOLDER_PATH = os.path.join('/tmp', 'instance')
+INSTANCE_FOLDER_PATH = os.path.join('/tmp', 'instzance')
 
 ALLOWED_AVATAR_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
