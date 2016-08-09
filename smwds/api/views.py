@@ -7,7 +7,7 @@ from flask_restful import Api, Resource
 
 api = Blueprint('api', __name__, url_prefix='/api/v1')
 #api = Blueprint('api', __name__)
-api_wrap = Api(api,catch_all_404s=True,)
+api_wrap = Api(api,catch_all_404s=False,)
 
 
 class TodoItem(Resource):

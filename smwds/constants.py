@@ -4,6 +4,7 @@ import os
 from collections import OrderedDict
 from flask import Markup
 
+
 ADMIN = 0
 STAFF = 1
 USER = 2

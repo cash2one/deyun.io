@@ -28,6 +28,14 @@ class BaseConfig(object):
     # http://flask.pocoo.org/docs/patterns/fileuploads/#improving-uploads
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     UPLOAD_FOLDER = os.path.join(INSTANCE_FOLDER_PATH, 'uploads')
+    
+    #Saltstack api settings
+    SSAPI = "your ip or web address"
+    SSPORT = "1000"
+    SSUSER = "admin"
+    SSPASS = "password"
+
+    #settings end
 
 
 class DefaultConfig(BaseConfig):

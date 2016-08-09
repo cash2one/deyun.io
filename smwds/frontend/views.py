@@ -15,17 +15,20 @@ def frontend_before_request():
     g.user = current_user
 
 
+
 @frontend.route('/')
 @frontend.route('/index')
 @login_required
 def index():
-    index_data = [{
+    index_data = {
                   'user': {
                       'name': session['username'],
-                      'remember_me': session['remember_me']
-                  },
+                      'remember_me': session['remember_me'],
+                      'ip':request.remote_addr
+
+                          },
                   'text': 'Bootstrap is beautiful, and Flask is cool!'
-                  }]
+                  }
     return render_template('index.html', index_data=index_data)
 
 
@@ -39,14 +42,15 @@ def login():
     if form.validate_on_submit():
 
         session['remember_me'] = form.remember_me.data
-        user = User.query.filter_by(name=form.name.data.lower()).first()
-        if user and user.check_password(form.password.data):
-            current_app.logger.error('user checked')
+        #user = User.query.filter_by(name=form.name.data.lower()).first()
+        user,auth = User.authenticate(form.name.data,form.password.data)
+        if user and auth:
+            current_app.logger.info( form.name.data + ' checked in with data: ' + str(form.remember_me.data))
             session['username'] = form.name.data
             login_user(user, remember=session['remember_me'])
             return redirect(url_for('frontend.index'))
         else:
-            current_app.logger.info(
+            current_app.logger.warning(
                 'user ' + form.name.data + ' failed with authentication')
             return render_template('login.html', form=form, failed_auth=True)
 

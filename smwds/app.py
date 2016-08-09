@@ -62,7 +62,7 @@ def configure_extensions(app):
 
         # flask-login
     login_manager.login_view = 'frontend.login'
-    login_manager.refresh_view = 'frontend.reauth'
+    login_manager.refresh_view = 'frontend.login'
 
     @login_manager.user_loader
     def load_user(id):
@@ -109,7 +109,7 @@ def configure_logging(app):
 
     # Set info level on logger, which might be overwritten by handers.
     # Suppress DEBUG messages.
-    app.logger.setLevel(logging.DEBUG)
+    app.logger.setLevel(logging.INFO)
 
     info_log = os.path.join(app.config['LOG_FOLDER'], 'info.log')
     info_file_handler = logging.handlers.RotatingFileHandler(
