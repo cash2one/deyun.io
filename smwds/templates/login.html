@@ -24,17 +24,17 @@
 
                 <h1 class="logo-name">Ss+</h1>
                 {% if failed_auth %}
-                    <div class="alert alert-danger" role="alert">
+                    <div class="alert alert-danger animated shake" role="alert">
                     <b>ERROR:</b> Invalid Email or Password. <!--<a href="/signup">Sign Up</a> a new account?-->
                     </div>
                 {% endif %}
                 {% for message in form.name.errors %}
-                    <div class="alert alert-danger" role="alert">
+                    <div class="alert alert-danger animated shake" role="alert">
                     <b>ERROR:</b> {{ message }}
                     </div>
                 {% endfor %}
                 {% for message in form.password.errors %}
-                    <div class="alert alert-danger" role="alert">
+                    <div class="alert alert-danger animated shake" role="alert">
                     <b>ERROR:</b> {{ message }}
                     </div>
                 {% endfor %}
