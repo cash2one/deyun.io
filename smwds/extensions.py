@@ -9,3 +9,6 @@ login_manager = LoginManager()
 # https://docs.getsentry.com/hosted/clients/python/integrations/flask/
 from raven.contrib.flask import Sentry
 sentry = Sentry()
+
+from flask_cache import Cache
+cache = Cache()

@@ -1,9 +1,10 @@
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_script import Manager
+
 from config import DefaultConfig
 from utils import INSTANCE_FOLDER_PATH
-from extensions import db, login_manager
+from extensions import db, login_manager, cache
 from filters import format_date, pretty_date, nl2br
 from user import User
 
@@ -47,10 +48,20 @@ def configure_app(app, config=None):
 
     if config:
         app.config.from_object(config)
-
+        
     # Use instance folder instead of env variables to make deployment easier.
     #app.config.from_envvar('%s_APP_CONFIG' % DefaultConfig.PROJECT.upper(), silent=True)
 
+    #Redis Cache
+    cache_config = {
+        'CACHE_TYPE': DefaultConfig.CACHE_TYPE,
+        'CACHE_REDIS_HOST': DefaultConfig.CACHE_REDIS_HOST,
+        'CACHE_REDIS_PORT': DefaultConfig.CACHE_REDIS_PORT,
+        'CACHE_REDIS_DB': DefaultConfig.CACHE_REDIS_DB,
+        'CACHE_REDIS_PASSWORD': DefaultConfig.CACHE_REDIS_PASSWORD
+                    } 
+
+    cache.init_app(app, config=cache_config)
 
 def configure_extensions(app):
         # flask-sqlalchemy

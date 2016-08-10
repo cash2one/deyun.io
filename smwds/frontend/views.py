@@ -3,16 +3,23 @@ from flask import Blueprint, render_template, current_app, request, flash, \
 from flask_login import login_user, logout_user, current_user, login_required
 from frontend.form import LoginForm
 from user import User
+from extensions import cache
 
 frontend = Blueprint('frontend', __name__, template_folder='../templates')
 
 #frontend = Blueprint('frontend', __name__)
-STATIC_URL_ROOT = '//127.0.0.1/static/'
+
 
 
 @frontend.before_request
 def frontend_before_request():
     g.user = current_user
+
+@frontend.route('/testcache')
+@cache.memoize(timeout=60*2)
+def testcache():
+  name = 'mink'
+  return name + " " + str(cache.get('testcache'))
 
 
 
