@@ -11,3 +11,5 @@ from extensions import db
 from utils import get_current_time
 from constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS, \
     SEX_TYPES, STRING_LEN
+
+
