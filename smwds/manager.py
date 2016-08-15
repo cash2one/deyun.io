@@ -7,6 +7,7 @@ from flask_script.commands import ShowUrls, Clean
 from extensions import db
 from user import User
 
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 manager = Manager(app.create_app())
@@ -45,7 +46,9 @@ def testuser():
     demo = User(
                 name=u'demo',
                 email=u'demo@example.com',
-                password=u'123456')
+                #password=u'123456'
+                password=u'123456'
+                )
     db.session.add(demo)
     db.session.commit()
 

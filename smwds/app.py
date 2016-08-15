@@ -59,7 +59,7 @@ def configure_app(app, config=None):
         'CACHE_REDIS_PORT': DefaultConfig.CACHE_REDIS_PORT,
         'CACHE_REDIS_DB': DefaultConfig.CACHE_REDIS_DB,
         'CACHE_REDIS_PASSWORD': DefaultConfig.CACHE_REDIS_PASSWORD
-                    } 
+                    }
 
     cache.init_app(app, config=cache_config)
 
