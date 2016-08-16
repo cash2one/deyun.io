@@ -6,6 +6,7 @@ from flask_script import Manager, prompt_choices, Server
 from flask_script.commands import ShowUrls, Clean
 from extensions import db
 from user import User
+import uuid
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -44,6 +45,7 @@ def testuser():
     Create test user
     """
     demo = User(
+                id=uuid.uuid4(),
                 name=u'demo',
                 email=u'demo@example.com',
                 #password=u'123456'

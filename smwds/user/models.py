@@ -11,13 +11,15 @@ from extensions import db
 from utils import get_current_time
 from constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS, \
     SEX_TYPES, STRING_LEN
+from sqlalchemy_utils import UUIDType
 
 
 class User(db.Model, UserMixin):
 
     __tablename__ = 'users'
 
-    id = Column(db.Integer, primary_key=True)
+    #id = Column(db.Integer, primary_key=True)
+    id =  Column(UUIDType(binary=False), primary_key=True)
     name = Column(db.String(STRING_LEN), nullable=False, unique=True)
     email = Column(db.String(STRING_LEN), nullable=False, unique=True)
     phone = Column(db.String(STRING_LEN), nullable=False, default="")

@@ -1,3 +1,6 @@
+#redis file
+dump.rdb
+
 #Sync script
 script/
 
