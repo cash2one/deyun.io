@@ -15,7 +15,7 @@ from sqlalchemy_utils import UUIDType
 
 
 
-class apidb(db.Model):
+class Apidb(db.Model):
     __tablename__ = 'api'
 
     def __repr__(self):
@@ -28,7 +28,8 @@ class apidb(db.Model):
     master_port = Column(db.String(STRING_LEN), nullable=False, default="")
     master_api_url = Column(db.String(STRING_LEN), nullable=False, default="")
     master_api_port  = Column(db.Integer, nullable=False, default=0)
-    location = Column(db.String(STRING_LEN), nullable=False, default="")
+    #location = Column(db.String(STRING_LEN), nullable=False, default="")
+    location = Column(db.String(STRING_LEN), nullable=False, default="", db.ForeignKey('location.uuid'))
     bio = Column(db.Text, default="")
     ssh_key = Column(db.String(STRING_LEN))
     create_at = Column(db.DateTime, nullable=False, default=get_current_time)
@@ -42,7 +43,8 @@ class apidb(db.Model):
     def _set_password(self, password):
         self._password = generate_password_hash(password)
 
-class location(db.Model):
+class Location(db.Model):
+    apis = db.relationship('Apidb', backref = 'location')
     uuid = Column(UUIDType(binary=False), primary_key=True)
     name = Column(db.String(STRING_LEN), nullable=False, default='', info={verbose_name : u'名称',})
     type = Column(db.String(STRING_LEN), nullable=False, default='', info={verbose_name : u'类型',})

@@ -6,6 +6,7 @@ from flask_script import Manager, prompt_choices, Server
 from flask_script.commands import ShowUrls, Clean
 from extensions import db
 from user import User
+from api import Api
 import uuid
 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -38,11 +39,12 @@ def initdb():
     init DB
     """
     app.initdb()
+    testdata()
 
-@manager.command
-def testuser():
+
+def testdata():
     """
-    Create test user
+    Create test data
     """
     demo = User(
                 id=uuid.uuid4(),
