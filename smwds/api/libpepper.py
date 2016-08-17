@@ -74,6 +74,27 @@ class Pepper(object):
         self._ssl_verify = not ignore_ssl_errors
         self.auth = {}
 
+    def get_api(self, path):
+
+        import requests
+        
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        if self.auth and 'token' in self.auth and self.auth['token']:
+            headers.setdefault('X-Auth-Token', self.auth['token'])
+        # Optionally toggle SSL verification
+        #self._ssl_verify = self.ignore_ssl_errors
+        params = {'url': self._construct_url(path),
+                  'headers': headers,
+                  'verify': self._ssl_verify == False,
+                  }
+        resp = requests.get(**params)
+        return resp.json()
+
+
     def req(self, path, data=None):
         '''
         A thin wrapper around urllib2 to send requests and return the response

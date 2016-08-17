@@ -7,7 +7,7 @@ script/
 #python env
 pyenv/
 .coding-ide/
-manager.py
+smwds/manager.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
