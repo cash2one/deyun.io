@@ -8,6 +8,7 @@ script/
 pyenv/
 .coding-ide/
 smwds/manager.py
+smwds/api/test.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

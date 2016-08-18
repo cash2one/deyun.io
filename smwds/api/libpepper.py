@@ -74,7 +74,13 @@ class Pepper(object):
         self._ssl_verify = not ignore_ssl_errors
         self.auth = {}
 
-    def get_api(self, path):
+    def req_get(self, path):
+        '''
+        A thin wrapper from get http method of saltstack api
+        api = Pepper('http://ipaddress/api/')
+        print(api.login('salt','salt','pam'))
+        print(api.req_get('/keys'))
+        '''
 
         import requests
         
@@ -85,15 +91,35 @@ class Pepper(object):
         }
         if self.auth and 'token' in self.auth and self.auth['token']:
             headers.setdefault('X-Auth-Token', self.auth['token'])
+        else:
+            raise PepperException('Authentication required')
+            return
         # Optionally toggle SSL verification
         #self._ssl_verify = self.ignore_ssl_errors
         params = {'url': self._construct_url(path),
                   'headers': headers,
-                  'verify': self._ssl_verify == False,
+                  'verify': self._ssl_verify == True,
                   }
-        resp = requests.get(**params)
+        try:
+            resp = requests.get(**params)           
+
+            if resp.status_code == 401:
+                raise PepperException(str(resp.status_code) + ':Authentication denied')
+                return
+
+            if resp.status_code == 500:
+                raise PepperException(str(resp.status_code) + ':Server error.')
+                return
+
+            if resp.status_code == 404:
+                raise PepperException(str(resp.status_code) +' :This request returns nothing.')
+                return
+        except PepperException as e:
+            print(e)
+            return
         return resp.json()
 
+        
 
     def req(self, path, data=None):
         '''
