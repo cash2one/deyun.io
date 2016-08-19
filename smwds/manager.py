@@ -63,11 +63,11 @@ def testdata():
     demoapi = Apidb(
                 id=uuid.uuid4(),
                 master_name=u'test api',
-                master_ip=u'',
-                master_port=u'',
-                master_api_url=u'',
-                master_api_port=u'',
-                username=u'',
+                master_ip=u'1.1.1.1',
+                master_port=u'1111',
+                master_api_url=u'http://api.com/api/',
+                master_api_port=u'80',
+                username=u'salt',
                 password=u'',
                 location=demolocation
                 )
