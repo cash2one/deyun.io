@@ -65,7 +65,7 @@ def testdata():
                 master_name=u'test api',
                 master_ip=u'1.1.1.1',
                 master_port=u'1111',
-                master_api_url=u'http://api.com/api/',
+                master_api_url=u'http://api.salt.com/api/',
                 master_api_port=u'80',
                 username=u'salt',
                 password=u'',
