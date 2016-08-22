@@ -1,2 +1,0 @@
-{% set minions = salt['roles.dict']('mesos-master') -%}
-{{ minions['mesos-master']|length // 2 + 1}}

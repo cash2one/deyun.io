@@ -52,7 +52,6 @@ def testdata():
                 id=uuid.uuid4(),
                 name=u'demo',
                 email=u'demo@example.com',
-                #password=u'123456'
                 password=u'123456'
                 )
     demolocation = Location(

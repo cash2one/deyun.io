@@ -54,6 +54,7 @@ def login():
         if user and auth:
             current_app.logger.info( form.name.data + ' checked in with data: ' + str(form.remember_me.data))
             session['username'] = form.name.data
+            session['uid'] = user.id
             login_user(user, remember=session['remember_me'])
             return redirect(url_for('frontend.index'))
         else:

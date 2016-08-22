@@ -38,11 +38,16 @@ class saltapi_get(Resource):
         t_api = getsaltapi(target)
         return t_api.req_get('/' + path)
 
-
-
-#class saltapi_req(Resource):
+class saltapi_monion(Resource):
+    @cache.memoize(timeout=60 * 60)
+    #@login_required
+    def get(self, minion_id, path):
+        target = Apidb.query.filter_by(id=monion_id).first_or_404()
+        t_api = getsaltapi(target)
+        return t_api.req_get('/' + path)
     
 
 
 
 api_wrap.add_resource(saltapi_get, '/<string:master_id>/<string:path>')
+api_wrap.add_resource(saltapi_monion, '/<string:minion_id>/<string:path>')
