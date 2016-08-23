@@ -15,15 +15,15 @@ from sqlalchemy_utils import UUIDType
 
 
 
-class Apidb(db.Model):
-    __tablename__ = 'api'
+class Masterdb(db.Model):
+    __tablename__ = 'masterdb'
 
     def __repr__(self):
       return '<Master APi %r>' % self.master_name
 
     #id = Column(db.Integer, primary_key=True)
     id = Column(UUIDType(binary=False), primary_key=True)
-    master_name = Column(db.String(STRING_LEN), nullable=False, unique=True, info={'verbose_name': u'主机名',})
+    master_name = Column(db.String(STRING_LEN), nullable=False, unique=True, index = True, info={'verbose_name': u'主机名',})
     master_ip = Column(db.String(STRING_LEN), nullable=False, unique=True, info={'verbose_name': u'主机IP',})
     master_port = Column(db.String(STRING_LEN), nullable=False, default="", info={'verbose_name': u'主机端口',})
     master_api_url = Column(db.String(STRING_LEN), nullable=False, default="", info={'verbose_name' : u'主机API地址',})
@@ -32,7 +32,7 @@ class Apidb(db.Model):
     password = Column(db.String(STRING_LEN),  nullable=False, default='sugar')
     #location = Column(db.String(STRING_LEN), nullable=False, default="")
     location_id = Column(UUIDType(binary=False), db.ForeignKey('location.id'), nullable=False, default="", info={'verbose_name' : u'提供商',})
-    location = db.relationship('Location', backref = 'apis')
+    location = db.relationship('Location', backref = 'masters')
     bio = Column(db.Text, default="", info={'verbose_name' : u'备注',})
     ssh_key = Column(db.String(STRING_LEN))
     create_at = Column(db.DateTime, nullable=False, default=get_current_time, info={'verbose_name' : u'创建时间',})
@@ -55,4 +55,32 @@ class Location(db.Model):
     bandwidth = Column(db.String(STRING_LEN), nullable=False, default='', info={'verbose_name' : u'带宽',})
     avatar = Column(db.String(STRING_LEN), nullable=False, default='')
     address = Column(db.String(STRING_LEN), nullable=False, default='', info={'verbose_name' : u'网址',})
+
+
+class Nodedb(db.Model):
+
+    __tablename__ = 'nodedb'
+
+    def __repr__(self):
+      return '<node %r>' % self.node_name
+
+    #id = Column(db.Integer, primary_key=True)
+    id = Column(UUIDType(binary=False), primary_key=True)
+    node_name = Column(db.String(STRING_LEN), nullable=False, unique=True, index = True ,info={'verbose_name': u'Node名',})
+    node_ip = Column(db.String(STRING_LEN), nullable=False, unique=True, info={'verbose_name': u'Node IP',})
+    node_port = Column(db.String(STRING_LEN), nullable=False, default="", info={'verbose_name': u'Node 端口',})
+    username = Column(db.String(STRING_LEN),  nullable=False, default='salt')
+    password = Column(db.String(STRING_LEN),  nullable=False, default='sugar')
+    #location = Column(db.String(STRING_LEN), nullable=False, default="")
+    location_id = Column(UUIDType(binary=False), db.ForeignKey('location.id'), nullable=False, default="", info={'verbose_name' : u'提供商',})
+    location = db.relationship('Location', backref = 'nodes')
+    bio = Column(db.Text, default="", info={'verbose_name' : u'备注',})
+    ssh_key = Column(db.String(STRING_LEN))
+    create_at = Column(db.DateTime, nullable=False, default=get_current_time, info={'verbose_name' : u'创建时间',})
+    update_at = Column(db.DateTime, info={'verbose_name' : u'更新时间',})
+    master_id = Column(UUIDType(binary=False), db.ForeignKey('masterdb.id'), nullable=False, default="", info={'verbose_name' : u'Master',})
+    master = db.relationship('Masterdb', backref = 'nodes')
+    avatar = Column(db.String(STRING_LEN), nullable=False, default='')
+
+
     

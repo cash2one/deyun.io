@@ -10,6 +10,8 @@ pyenv/
 smwds/manager.py
 smwds/manager.py
 smwds/api/test.py
+*/manager.py
+manager.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

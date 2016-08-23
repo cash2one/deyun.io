@@ -6,7 +6,7 @@ from flask_script import Manager, prompt_choices, Server
 from flask_script.commands import ShowUrls, Clean
 from extensions import db
 from user import User
-from api import Apidb, Location
+from api import Masterdb, Nodedb,Location
 import uuid
 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -59,23 +59,42 @@ def testdata():
                 name=u'test'
 
                 )
-    demoapi = Apidb(
+    demomaster = Masterdb(
                 id=uuid.uuid4(),
                 master_name=u'test api',
                 master_ip=u'1.1.1.1',
                 master_port=u'1111',
-                master_api_url=u'http://api.salt.com/api/',
+                master_api_url=u'http://salt.salt.com/api/',
                 master_api_port=u'80',
                 username=u'salt',
                 password=u'',
                 location=demolocation
                 )
+    demonode1 = Nodedb(
+                id=uuid.uuid4(),
+                node_name=u'test node 1',
+                node_ip=u'1.1.2.1',
+                bio=u'test descrption',
+                location=demolocation,
+                master=demomaster
+                )
+    demonode2 = Nodedb(
+              id=uuid.uuid4(),
+              node_name=u'test node 2' ,
+              node_ip=u'1.1.2.2',
+              bio=u'test descrption',
+              location=demolocation,
+              master=demomaster
+              )
     
     db.session.add(demo)
-    db.session.add(demoapi)
+    db.session.add(demomaster)
     db.session.add(demolocation)
+    db.session.add(demonode1)
+    db.session.add(demonode2)
     db.session.commit()
-    print(demolocation.apis)
+    print(demolocation.masters)
+    print(demomaster.nodes)
 
 if __name__ == "__main__":
     manager.run()
