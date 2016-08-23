@@ -59,7 +59,7 @@ class saltapi_monion(Resource):
     def get(self, minion_id, path):
         target_node = Nodedb.query.filter_by(id=monion_id).first_or_404()
         t_api = getsaltapi(target_node)
-        return t_api.req_get('/' + node.name + '/' + path)
+        return t_api.req_get('/' + target_node.name + '/' + path)
     
 
 
