@@ -8,7 +8,7 @@
 
         <div class="error-desc">
             This page is under development. Hope to see it soon<br/>
-            You can go back to main page: <br/><a href="{{ url_for('frontend.index') }}" class="btn btn-primary m-t">main</a>
+            You can go back to main page: <br/><a href="{{ url_for('frontend.index', s_id=session['sid']) }}" class="btn btn-primary m-t">main</a>
         </div>
     </div>
 

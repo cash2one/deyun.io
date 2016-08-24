@@ -14,14 +14,14 @@ frontend = Blueprint('frontend', __name__, template_folder='../templates')
 
 @frontend.before_request
 def frontend_before_request():
-    current_app.logger.info(str(current_user.id)+ 'is making the request to ' + request.endpoint)
+    current_app.logger.info(str(current_user.id)+ 'is making the request to ' + request.url)
     g.user = current_user
 
 
 
 @frontend.teardown_request
 def frontend_teardown_request(extensions):
-    current_app.logger.info(str(current_user.id) + 'is leaving' + request.endpoint)
+    current_app.logger.info(str(current_user.id) + 'is leaving' + request.url)
 
 @frontend.route('/testcache')
 @cache.memoize(timeout=60*2)
@@ -49,17 +49,18 @@ def ret_index():
 @frontend.route('/')
 @frontend.route('/index')
 @login_required
-@cache.memoize(timeout=60 * 60)
+@cache.memoize(timeout=60)
 def index():
     #if session_id: 
     #    if g.user.session['sid'] == session_id :
     #        return render_template('index.html', index_data=ret_index())
     #    else :
-    #        return redirect(url_for('frontend.login'))  
-    if request.args.get('s_id') == hashlib.md5(b"str(session['sid'])").hexdigest():
+    #        return redirect(url_for('frontend.login')) 
+    check_id = str(session['uid']) 
+    if request.args.get('s_id') == hashlib.md5(check_id.encode('utf-8')).hexdigest():
         return render_template('index.html', index_data=ret_index())
     else :
-        return redirect(url_for('frontend.login'))
+        return redirect(url_for('frontend.logout'))
 
 
 @frontend.route('/login', methods=['GET', 'POST'])
@@ -79,7 +80,7 @@ def login():
             session['username'] = form.name.data
             session['log in'] = True
             session['uid'] = str(user.id)
-            session['sid'] = hashlib.md5(b'str(user.id)').hexdigest()
+            session['sid'] = hashlib.md5(str(user.id).encode('utf-8')).hexdigest()
             login_user(user, remember=session['remember_me'])
             current_app.logger.info(str(session))
             return redirect(url_for('frontend.index',s_id=session['sid']))
@@ -95,7 +96,7 @@ def login():
 def logout():
 
     logout_user()
-    return redirect(url_for('frontend.index'))
+    return redirect(url_for('frontend.login'))
 
 
 

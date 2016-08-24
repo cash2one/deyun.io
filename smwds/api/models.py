@@ -46,7 +46,11 @@ class Masterdb(db.Model):
         return self.master_api_url + ":" + str(self.master_api_port)
 
 
-    
+class Tag(db.Model):
+    id = Column(UUIDType(binary=False), primary_key=True)
+    name = Column(db.String(STRING_LEN), nullable=False, default='', info={'verbose_name' : u'名称',})
+    type = Column(db.String(STRING_LEN), nullable=False, default='', info={'verbose_name' : u'类型',})
+    url = Column(db.String(STRING_LEN), nullable=False, default='')
 
 class Location(db.Model):
     id = Column(UUIDType(binary=False), primary_key=True)
