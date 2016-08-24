@@ -4,7 +4,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from frontend.form import LoginForm
 from user import User
 from extensions import cache
-import uuid
+import uuid, hashlib
 
 frontend = Blueprint('frontend', __name__, template_folder='../templates')
 
@@ -14,8 +14,14 @@ frontend = Blueprint('frontend', __name__, template_folder='../templates')
 
 @frontend.before_request
 def frontend_before_request():
+    current_app.logger.info(str(current_user.id)+ 'is making the request to ' + request.endpoint)
     g.user = current_user
- 
+
+
+
+@frontend.teardown_request
+def frontend_teardown_request(extensions):
+    current_app.logger.info(str(current_user.id) + 'is leaving' + request.endpoint)
 
 @frontend.route('/testcache')
 @cache.memoize(timeout=60*2)
@@ -23,7 +29,7 @@ def testcache():
   name = 'mink'
   return name + " " + str(cache.get('testcache'))
 
-@cache.cached(timeout=60*60, key_prefix='views/%s')
+
 def ret_index():
   if request.headers.getlist("X-Forwarded-For"):
     t_ip = request.headers.getlist("X-Forwarded-For")[0]
@@ -42,21 +48,24 @@ def ret_index():
 
 @frontend.route('/')
 @frontend.route('/index')
-@frontend.route('/index/<session_id>')
 @login_required
+@cache.memoize(timeout=60 * 60)
 def index():
     #if session_id: 
     #    if g.user.session['sid'] == session_id :
     #        return render_template('index.html', index_data=ret_index())
     #    else :
-    #        return redirect(url_for('frontend.login'))
-    return render_template('index.html', index_data=ret_index())
+    #        return redirect(url_for('frontend.login'))  
+    if request.args.get('s_id') == hashlib.md5(b"str(session['sid'])").hexdigest():
+        return render_template('index.html', index_data=ret_index())
+    else :
+        return redirect(url_for('frontend.login'))
 
 
 @frontend.route('/login', methods=['GET', 'POST'])
 def login():
-    if g.user is not None and g.user.is_authenticated:
-        return redirect(url_for('frontend.index'))
+    #if g.user is not None and g.user.is_authenticated:
+    #    return redirect(url_for('frontend.index'))
 
     form = LoginForm()
 
@@ -68,9 +77,12 @@ def login():
         if user and auth:
             current_app.logger.info( form.name.data + ' checked in with data: ' + str(form.remember_me.data))
             session['username'] = form.name.data
-            session['uid'] = user.id
+            session['log in'] = True
+            session['uid'] = str(user.id)
+            session['sid'] = hashlib.md5(b'str(user.id)').hexdigest()
             login_user(user, remember=session['remember_me'])
-            return redirect(url_for('frontend.index'))
+            current_app.logger.info(str(session))
+            return redirect(url_for('frontend.index',s_id=session['sid']))
         else:
             current_app.logger.warning(
                 'user ' + form.name.data + ' failed with authentication')

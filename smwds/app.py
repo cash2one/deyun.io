@@ -4,9 +4,10 @@ from flask_script import Manager
 
 from config import DefaultConfig
 from utils import INSTANCE_FOLDER_PATH
-from extensions import db, login_manager, cache
+from extensions import db, login_manager, cache, Anonymous
 from filters import format_date, pretty_date, nl2br
 from user import User
+from weblib.redissession import RedisSession
 
 import os
 
@@ -24,7 +25,8 @@ def create_app(config=None, app_name=None):
         app_name,
         instance_path=INSTANCE_FOLDER_PATH,
         instance_relative_config=True,
-        static_url_path='/_static'
+        static_url_path=None,
+        static_folder=None
     )
     configure_app(app, config)
     configure_hook(app)
@@ -62,6 +64,7 @@ def configure_app(app, config=None):
                     }
 
     cache.init_app(app, config=cache_config)
+    RedisSession(app)
 
 def configure_extensions(app):
         # flask-sqlalchemy
@@ -71,9 +74,10 @@ def configure_extensions(app):
     if app.config['SENTRY_DSN']:
         sentry.init(app, dsn=app.config['SENTRY_DSN'])
 
-        # flask-login
+    # flask-login
     login_manager.login_view = 'frontend.login'
     login_manager.refresh_view = 'frontend.login'
+    login_manager.anonymous_user = Anonymous
 
     @login_manager.user_loader
     def load_user(id):

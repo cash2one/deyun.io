@@ -3,11 +3,11 @@
 import os
 
 from utils import make_dir, INSTANCE_FOLDER_PATH
-
+from datetime import timedelta
 
 class BaseConfig(object):
 
-    PROJECT = "smwds"
+    PROJECT = "deyunio"
 
     # Get app root path, also can use flask.root_path.
     # ../../config.py
@@ -42,6 +42,7 @@ class BaseConfig(object):
     CACHE_REDIS_DB = ''
     CACHE_REDIS_PASSWORD = ''
     REDIS_URL = "redis://localhost:6379/3"
+    PERMANENT_SESSION_LIFETIME = timedelta(seconds= 60 * 60 * 24)
 
 
 class DefaultConfig(BaseConfig):
