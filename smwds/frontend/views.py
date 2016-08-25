@@ -14,14 +14,14 @@ frontend = Blueprint('frontend', __name__, template_folder='../templates')
 
 @frontend.before_request
 def frontend_before_request():
-    current_app.logger.info(str(current_user.id)+ 'is making the request to ' + request.url)
+    current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @IP:" + ret_ip())
     g.user = current_user
 
 
 
 @frontend.teardown_request
 def frontend_teardown_request(extensions):
-    current_app.logger.info(str(current_user.id) + 'is leaving' + request.url)
+    pass
 
 @frontend.route('/testcache')
 @cache.memoize(timeout=60*2)
@@ -30,16 +30,20 @@ def testcache():
   return name + " " + str(cache.get('testcache'))
 
 
-def ret_index():
+def ret_ip():
   if request.headers.getlist("X-Forwarded-For"):
     t_ip = request.headers.getlist("X-Forwarded-For")[0]
   else:
     t_ip = request.remote_addr
+  return t_ip
+
+def ret_index():
+
   index_data = {
                 'user': {
                     'name': session['username'],
                     'remember_me': session['remember_me'],
-                    'ip':t_ip
+                    'ip':ret_ip()
                         },
                 'text': 'Bootstrap is beautiful, and Flask is cool!'
                 }
@@ -56,10 +60,12 @@ def index():
     #        return render_template('index.html', index_data=ret_index())
     #    else :
     #        return redirect(url_for('frontend.login')) 
-    check_id = str(session['uid']) 
-    if request.args.get('s_id') == hashlib.md5(check_id.encode('utf-8')).hexdigest():
+    s_id = request.args.get('s_id')
+    check_id = hashlib.md5(str(session['uid']).encode('utf-8')).hexdigest()
+    if s_id == check_id:
         return render_template('index.html', index_data=ret_index())
     else :
+        current_app.logger.warning("Session invaild : " + s_id + ' != ' + check_id)
         return redirect(url_for('frontend.logout'))
 
 

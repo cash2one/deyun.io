@@ -18,6 +18,6 @@ import uuid
 from flask_login import AnonymousUserMixin
 class Anonymous(AnonymousUserMixin):
   def __init__(self):
-    self.username = 'Guest'
+    self.name = 'Guest'
     self.id = session.session_id
 
