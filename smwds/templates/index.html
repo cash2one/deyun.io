@@ -595,6 +595,24 @@
 
 
             $('.footable').footable();
+            $('.footable').footable().bind({
+                  'footable_filtering' : function(e) {
+                        console.log('footable_filtering');
+                        $('#animation_box').removeAttr('class').attr('class', '');
+                        $('#animation_box').addClass('animated');
+                        $('#animation_box').addClass('shake');
+                        return true;
+                  },
+
+                  'footable_filtered' : function(e) {
+                       console.log('footable_filtered');  
+                        $('#animation_box').removeAttr('class').attr('class', '');
+                        $('#animation_box').addClass('animated');
+                        $('#animation_box').addClass('shake');
+                        return;              
+                  },
+            });
+
             $('.footable2').footable();
 
         });
