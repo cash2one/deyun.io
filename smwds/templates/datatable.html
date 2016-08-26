@@ -1,34 +1,6 @@
 
-            <div class="row">
-                 
-                            <div class="col-sm-6 text-center">
-                             <div id="animation_box" class="animated">
-                                    <p class="animation-text-info">
-                                        This is simple example of Rickshaw charts. You can use animation on any objects: text, charts, images, tables etc.
-                                    </p>
-                                    <div class="text-center wrapper-content animation-text-box">
-                                        <h2>48%</h2>
-                                        <p>Sales marketing</p>
-                                    </div>
-                                    <div id="rickshaw_multi" class="rickshaw_graph">
-                                        <svg width="376" height="250">
-                                            <g>
-                                                <path d="M0,230.1980198019802Q81.46666666666667,204.45544554455444,94,200.4950495049505C112.8,194.55445544554453,169.2,169.80198019801978,188,170.79207920792078S263.2,210.3960396039604,282,210.3960396039604Q294.5333333333333,210.3960396039604,376,170.79207920792078L376,250Q294.5333333333333,250,282,250C263.2,250,206.8,250,188,250S112.8,250,94,250Q81.46666666666667,250,0,250Z" class="area" fill="#1ab394"></path>
-                                                <path d="M0,230.1980198019802Q81.46666666666667,204.45544554455444,94,200.4950495049505C112.8,194.55445544554453,169.2,169.80198019801978,188,170.79207920792078S263.2,210.3960396039604,282,210.3960396039604Q294.5333333333333,210.3960396039604,376,170.79207920792078" class="line" fill="none" stroke="#17997f" stroke-width="2"></path>
-                                            </g>
-                                            <g>
-                                                <path d="M0,101.48514851485149Q81.46666666666667,58.58085808580857,94,51.980198019801975C112.8,42.07920792079208,169.2,-1.4851485148514705,188,2.47524752475249S263.2,84.65346534653466,282,91.58415841584159Q294.5333333333333,96.20462046204621,376,71.78217821782178L376,170.79207920792078Q294.5333333333333,210.3960396039604,282,210.3960396039604C263.2,210.3960396039604,206.8,171.78217821782178,188,170.79207920792078S112.8,194.55445544554453,94,200.4950495049505Q81.46666666666667,204.45544554455444,0,230.1980198019802Z" class="area" fill="#eeeeee"></path>
-                                                <path d="M0,101.48514851485149Q81.46666666666667,58.58085808580857,94,51.980198019801975C112.8,42.07920792079208,169.2,-1.4851485148514705,188,2.47524752475249S263.2,84.65346534653466,282,91.58415841584159Q294.5333333333333,96.20462046204621,376,71.78217821782178" class="line" fill="none" stroke="#d7d7d7" stroke-width="2"></path>
-                                            </g>
-                                        </svg>
-                                    </div>
-                                </div>
-                                </div>
-
-
-
-
-                <div class="col-lg-12">
+            <div class="row" >
+                <div class="col-lg-12" id="animation_table">
                     <div class="ibox float-e-margins">
                         <div class="ibox-title">
                             <h5>Master/Node List</h5>
@@ -47,8 +19,23 @@
                             </div>
                         </div>
                         <div class="ibox-content">
-                            <input type="text" class="form-control input-sm m-b-xs" id="filter"
-                                   placeholder="Search in table">
+                            <!--<input type="text" class="form-control input-sm m-b-xs" id="filter"
+                                   placeholder="Search in table">-->
+                            <div class="row">
+                                <div class="col-sm-4 m-b-xs">
+                                    <div data-toggle="buttons" class="btn-group">
+                                        <label class="btn btn-sm btn-white"> <input type="radio" id="option1" name="options"> Day </label>
+                                        <label class="btn btn-sm btn-white active"> <input type="radio" id="option2" name="options"> Week </label>
+                                        <label class="btn btn-sm btn-white"> <input type="radio" id="option3" name="options"> Month </label>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="input-group"><input id="search1" type="text" placeholder="Search" class="input-sm form-control"> <span class="input-group-btn">
+                                        <button id="search_btn1" type="button" class="btn btn-sm btn-primary"> Go!</button> </span></div>
+                                </div>
+
+                            </div>
+    
 
                             <table class="footable table table-stripped toggle-square " data-page-size="8" data-filter=#filter>
                                 <thead>
@@ -362,12 +349,11 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
 
-    <div class="row">
+   
 
-                    <div class="col-lg-12">
+                    <div class="col-lg-12" id="animation_table2">
                         <div class="ibox float-e-margins">
                             <div class="ibox-title">
                                 <h5>Instance List</h5>
@@ -383,8 +369,22 @@
                             <div class="ibox-content">
                                 <div class="row">
                                     <div class="ibox-content">
-                                        <input type="text" class="form-control input-sm m-b-xs" id="filter2"
-                                             placeholder="Search in table">
+                                        <!--<input type="text" class="form-control input-sm m-b-xs" id="filter2"
+                                             placeholder="Search in table">-->
+                                        <div class="row">
+                                                <div class="col-sm-4 m-b-xs">
+                                                <div data-toggle="buttons" class="btn-group">
+                                                  <label class="btn btn-sm btn-white"> <input type="radio" id="option1"   name="options"> Day </label>
+                                                  <label class="btn btn-sm btn-white active"> <input type="radio" id="  option2" name="options"> Week </label>
+                                                  <label class="btn btn-sm btn-white"> <input type="radio" id="option3"   name="options"> Month </label>
+                                                 </div>
+                                               </div>
+                                           <div class="col-sm-3">
+                                              <div class="input-group"><input id="search2" type="text" placeholder="  Search" class="input-sm form-control"> <span class="input-group-btn">
+                                                 <button id="search_btn2" type="button" class="btn btn-sm btn-primary"> Go!</button> </span></div>
+                                           </div>
+
+                                         </div>
 
                                         <table class="footable2 table table-stripped toggle-square " data-page-size="8" data-filter=#filter2>
                                         <thead>
@@ -564,4 +564,7 @@
 
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
                    

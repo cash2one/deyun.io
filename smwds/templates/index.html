@@ -228,228 +228,7 @@
                 
                 {% include "datatable.html" %}
 
-                <!-- 
-                <div class="row">
-
-                    <div class="col-lg-12">
-                        <div class="ibox float-e-margins">
-                            <div class="ibox-title">
-                                <h5>Custom responsive table </h5>
-                                <div class="ibox-tools">
-                                    <a class="collapse-link">
-                                        <i class="fa fa-chevron-up"></i>
-                                    </a>
-                                    <a class="dropdown-toggle" data-toggle="dropdown" href="dashboard_4.html#">
-                                        <i class="fa fa-wrench"></i>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-user">
-                                        <li><a href="dashboard_4.html#">Config option 1</a>
-                                        </li>
-                                        <li><a href="dashboard_4.html#">Config option 2</a>
-                                        </li>
-                                    </ul>
-                                    <a class="close-link">
-                                        <i class="fa fa-times"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="ibox-content">
-                                <div class="row">
-                                    <div class="col-sm-9 m-b-xs">
-                                        <div data-toggle="buttons" class="btn-group">
-                                            <label class="btn btn-sm btn-white"> <input type="radio" id="option1" name="options"> Master </label>
-                                            <label class="btn btn-sm btn-white active"> <input type="radio" id="option2" name="options"> Nodes </label>
-                                            <label class="btn btn-sm btn-white"> <input type="radio" id="option3" name="options"> All </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-3">
-                                        <div class="input-group"><input type="text" placeholder="Search" class="input-sm form-control"> <span class="input-group-btn">
-                                        <button type="button" class="btn btn-sm btn-primary"> Go!</button> </span></div>
-                                    </div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead>
-                                        <tr>
-
-                                            <th>#</th>
-                                            <th>Master/Nodes </th>
-                                            <th>Name </th>
-                                            <th>Location </th>
-                                            <th>Bio </th>
-                                            <th>Tag </th>
-                                            <th>operator</th>
-                                            <th>Date</th>
-                                            <th>Task</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr>
-                                            <td>1</td>
-                                            <td>Node<small></small></td>
-                                            <td>test.name</td>
-                                            <td>test location</td>
-                                            <td>Text description</td>
-                                            <td>
-                                                <font color="#7FFFD4"><h3 class="no-margins fa-align-center"><i class="fa fa-bolt" ></i></h3></font>
-                                            </td>
-                                            <td>user name </td>
-                                            <td>Jul 14, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td>Alpha project</td>
-                                            <td>Alice Jackson</td>
-                                            <td>0500 780909</td>
-                                            <td>Nec Euismod In Company</td>
-                                            <td><span class="pie">6,9</span></td>
-                                            <td>40%</td>
-                                            <td>Jul 16, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>3</td>
-                                            <td>Betha project</td>
-                                            <td>John Smith</td>
-                                            <td>0800 1111</td>
-                                            <td>Erat Volutpat</td>
-                                            <td><span class="pie">3,1</span></td>
-                                            <td>75%</td>
-                                            <td>Jul 18, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>4</td>
-                                            <td>Gamma project</td>
-                                            <td>Anna Jordan</td>
-                                            <td>(016977) 0648</td>
-                                            <td>Tellus Ltd</td>
-                                            <td><span class="pie">4,9</span></td>
-                                            <td>18%</td>
-                                            <td>Jul 22, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td>Alpha project</td>
-                                            <td>Alice Jackson</td>
-                                            <td>0500 780909</td>
-                                            <td>Nec Euismod In Company</td>
-                                            <td><span class="pie">6,9</span></td>
-                                            <td>40%</td>
-                                            <td>Jul 16, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>1</td>
-                                            <td>Project <small>This is example of project</small></td>
-                                            <td>Patrick Smith</td>
-                                            <td>0800 051213</td>
-                                            <td>Inceptos Hymenaeos Ltd</td>
-                                            <td><span class="pie">0.52/1.561</span></td>
-                                            <td>20%</td>
-                                            <td>Jul 14, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>4</td>
-                                            <td>Gamma project</td>
-                                            <td>Anna Jordan</td>
-                                            <td>(016977) 0648</td>
-                                            <td>Tellus Ltd</td>
-                                            <td><span class="pie">4,9</span></td>
-                                            <td>18%</td>
-                                            <td>Jul 22, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>1</td>
-                                            <td>Project <small>This is example of project</small></td>
-                                            <td>Patrick Smith</td>
-                                            <td>0800 051213</td>
-                                            <td>Inceptos Hymenaeos Ltd</td>
-                                            <td><span class="pie">0.52/1.561</span></td>
-                                            <td>20%</td>
-                                            <td>Jul 14, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td>Alpha project</td>
-                                            <td>Alice Jackson</td>
-                                            <td>0500 780909</td>
-                                            <td>Nec Euismod In Company</td>
-                                            <td><span class="pie">6,9</span></td>
-                                            <td>40%</td>
-                                            <td>Jul 16, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>3</td>
-                                            <td>Betha project</td>
-                                            <td>John Smith</td>
-                                            <td>0800 1111</td>
-                                            <td>Erat Volutpat</td>
-                                            <td><span class="pie">3,1</span></td>
-                                            <td>75%</td>
-                                            <td>Jul 18, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>4</td>
-                                            <td>Gamma project</td>
-                                            <td>Anna Jordan</td>
-                                            <td>(016977) 0648</td>
-                                            <td>Tellus Ltd</td>
-                                            <td><span class="pie">4,9</span></td>
-                                            <td>18%</td>
-                                            <td>Jul 22, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td>Alpha project</td>
-                                            <td>Alice Jackson</td>
-                                            <td>0500 780909</td>
-                                            <td>Nec Euismod In Company</td>
-                                            <td><span class="pie">6,9</span></td>
-                                            <td>40%</td>
-                                            <td>Jul 16, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>1</td>
-                                            <td>Project <small>This is example of project</small></td>
-                                            <td>Patrick Smith</td>
-                                            <td>0800 051213</td>
-                                            <td>Inceptos Hymenaeos Ltd</td>
-                                            <td><span class="pie">0.52/1.561</span></td>
-                                            <td>20%</td>
-                                            <td>Jul 14, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        <tr>
-                                            <td>4</td>
-                                            <td>Gamma project</td>
-                                            <td>Anna Jordan</td>
-                                            <td>(016977) 0648</td>
-                                            <td>Tellus Ltd</td>
-                                            <td><span class="pie">4,9</span></td>
-                                            <td>18%</td>
-                                            <td>Jul 22, 2013</td>
-                                            <td><a href="dashboard_4.html#"><i class="fa fa-check text-navy"></i></a></td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-                    -->
+               
             </div>
 
         </div>
@@ -595,25 +374,76 @@
 
 
             $('.footable').footable();
+    
             $('.footable').footable().bind({
                   'footable_filtering' : function(e) {
-                        console.log('footable_filtering');
-                        $('#animation_box').removeAttr('class').attr('class', '');
-                        $('#animation_box').addClass('animated');
-                        $('#animation_box').addClass('shake');
-                        return true;
+                        
+                        $('#animation_table').removeAttr('class').attr('class', '');
+                        //$('#animation_table').addClass('animated');
+                        //$('#animation_table').addClass('shake');
+                        return ;
                   },
 
                   'footable_filtered' : function(e) {
-                       console.log('footable_filtered');  
-                        $('#animation_box').removeAttr('class').attr('class', '');
-                        $('#animation_box').addClass('animated');
-                        $('#animation_box').addClass('shake');
+                        
+                        
+                        $('#animation_table').removeAttr('class').attr('class', '');
+                        $('#animation_table').addClass('animated');
+                        $('#animation_table').addClass('flipInX');
+                        
                         return;              
                   },
             });
 
+            $('#search_btn1').click(function (e) {
+                                e.preventDefault();
+                            
+                                //get the footable filter object
+                                var footableFilter = $('.footable').data('footable-filter');
+                            
+                                
+                                //filter by 'tech'
+                                var search_text = $('#search1').val();
+                                
+                                footableFilter.filter(search_text);
+                            
+                            });
+
+
             $('.footable2').footable();
+
+            $('.footable2').footable().bind({
+                  'footable_filtering' : function(e) {
+                        
+                        $('#animation_table2').removeAttr('class').attr('class', '');
+                        //$('#animation_table').addClass('animated');
+                        //$('#animation_table').addClass('shake');
+                        return ;
+                  },
+
+                  'footable_filtered' : function(e) {
+                        
+                        $('#animation_table2').removeAttr('class').attr('class', '');
+                        $('#animation_table2').addClass('animated');
+                        $('#animation_table2').addClass('flipInY');
+                        
+                        return;              
+                  },
+            });
+
+             $('#search_btn2').click(function (e) {
+                                e.preventDefault();
+                            
+                                //get the footable filter object
+                                var footableFilter = $('.footable2').data('footable-filter');
+                            
+                                
+                                //filter by 'tech'
+                                var search_text = $('#search2').val();
+                                
+                                footableFilter.filter(search_text);
+                            
+                            });
 
         });
         
