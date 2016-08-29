@@ -65,14 +65,14 @@ def index():
     if s_id == check_id:
         return render_template('index.html', index_data=ret_index())
     else :
-        current_app.logger.warning("Session invaild : " + s_id + ' != ' + check_id)
+        current_app.logger.warning("Session invaild : " + str(s_id) + ' != ' + check_id)
         return redirect(url_for('frontend.logout'))
 
 
 @frontend.route('/login', methods=['GET', 'POST'])
 def login():
-    #if g.user is not None and g.user.is_authenticated:
-    #    return redirect(url_for('frontend.index'))
+    if g.user is not None and g.user.is_authenticated:
+        return redirect(url_for('frontend.index'))
 
     form = LoginForm()
 
