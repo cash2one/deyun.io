@@ -293,7 +293,8 @@
 
         $(document).ready(function() {
 
-
+            var n_data = JSON.parse( {{ index_data['top']|tojson|safe  }} );
+            console.log(n_data)
             var json = {
                         nodes: [
                             { data: { id: 'n0' } },
@@ -334,7 +335,7 @@
             cytoscape({                        
                            container: document.getElementById('cy'),
                         
-                           elements: json,
+                           elements: n_data,
                         
                            boxSelectionEnabled: false,
                            autounselectify: true,
@@ -344,7 +345,7 @@
                            },
                            minZoom: 0.3,
                            maxZoom: 3,
-
+                           wheelSensitivity: 0.8,
                            style: [
                                {
                                    selector: 'node',

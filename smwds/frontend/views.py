@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, current_app, request, flash, \
     url_for, redirect, session, abort, g
 from flask_login import login_user, logout_user, current_user, login_required
 from frontend.form import LoginForm
+from api.views import get_toplogy
 from user import User
 from extensions import cache
 import uuid, hashlib
@@ -38,8 +39,8 @@ def ret_ip():
   return t_ip
 
 def ret_index():
-
   index_data = {
+                'top':get_toplogy(),
                 'user': {
                     'name': session['username'],
                     'remember_me': session['remember_me'],

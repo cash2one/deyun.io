@@ -12,6 +12,7 @@ smwds/manager.py
 smwds/api/test.py
 */manager.py
 manager.py
+smwds/weblib/test.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
