@@ -53,7 +53,7 @@ def ret_index():
 @frontend.route('/')
 @frontend.route('/index')
 @login_required
-@cache.memoize(timeout=60)
+@cache.memoize(timeout=10)
 def index():
     #if session_id: 
     #    if g.user.session['sid'] == session_id :
