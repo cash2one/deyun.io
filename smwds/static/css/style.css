@@ -6,6 +6,14 @@
  *   version 2.4
  *
 */
+#cy {
+        width: 100%;
+        height: 390px;
+        
+        left: 0;
+        top: 100px;
+}
+
 h1,
 h2,
 h3,
@@ -1518,7 +1526,7 @@ a.list-group-item.active:focus {
 .flot-chart-content {
   width: 100%;
   height: 100%;
-  overflow: scroll;
+
 }
 .flot-chart-pie-content {
   width: 200px;

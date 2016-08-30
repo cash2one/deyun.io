@@ -112,19 +112,19 @@
                         </div>-->
 
                    
-                <div class="row m-b-sm ">
+                <div class="row ">
                     <div class="col-lg-6">
-                        <div class="widget">
+                        <div class="widget white-bg p-lg ">
                             <div class="small pull-left col-md-3 m-l-lg m-t-xs">
                                 <strong>System Toplogy</strong> 
                             </div>
                             <div class="small pull-right col-md-3 m-t-xs text-right">
-                                <strong>Chart supported by RaphelJS</strong>
+                                <strong>Chart supported by cytoscape.js</strong>
                             </div>
                             <div id="canvas" class="flot-chart-content">
                                 
                                <!-- <div class="flot-chart-content" id="flot-dashboard5-chart"></div>-->
-                                <div class="flot-chart-content" id="svg-container-view"></div>
+                                <div class="flot-chart-content" id="cy"></div>
                             </div>
                         </div>
                     </div>
@@ -132,7 +132,7 @@
                     <div class="col-lg-6 text-center p-xxs">
                         
                         <!--<div class="row m-t-lg">-->
-                       <div class="widget lazur-bg ">
+                       <div class="widget gray-bg ">
 
                              <h1 class="m-b-xs">
                                 98,100
@@ -158,7 +158,7 @@
                                    </div>
                             </div>
 
-                        <div class="widget navy-bg ">
+                        <div class="widget gray-bg ">
                     
                             <h1 class="m-b-xs">
                                 26,900
@@ -294,27 +294,86 @@
         $(document).ready(function() {
 
 
-            var json = {"id":"300002",
-                        "name":"贾政",
-                        "parent":"0",
-                        "type":"people",
-                        "color":"#ff0000",
-                        "shape":6,
-                        "weight":15,
-                        "childNodes":[{"id":"400008",
-                                        "name":"王夫人",
-                                        "parent":"300002",
-                                        "weight":1,
-                                        "type":"place",
-                                        "color":"#F16729",
-                                        "shape":3,
-                                        "childNodes":[],
-                                        "theta":6.19362957852902,
-                                        "radius":122.99288597313267},
-                                     {"id":"400009",
-                                     "name":"赵姨娘","parent":"300002","weight":8,"type":"people","color":"#CA0D86","shape":3,"childNodes":[],"theta":0.4367522381672722,"radius":128.62980688052275},{"id":"400010","name":"贾珠","parent":"300002","weight":15,"type":"people","color":"#1F1F1F","shape":3,"childNodes":[{"id":"500001","name":"李执","parent":"400010","weight":15,"type":"people","color":"#87B11D","shape":3,"childNodes":[],"theta":0.9716902261718676,"radius":161.77903724144645},{"id":"500002","name":"贾兰","parent":"400010","weight":15,"type":"people","color":"#3277B5","shape":3,"childNodes":[],"theta":2.2233862545605643,"radius":161.63360848278398}],"theta":1.6011731246062646,"radius":81.34371938233886},{"id":"400011","name":"贾元春","parent":"300002","weight":15,"type":"people","color":"#F89322","shape":3,"childNodes":[{"id":"500002","name":"贾兰","parent":"400011","weight":15,"type":"people","color":"#F16729","shape":3,"childNodes":[],"theta":2.2233862545605643,"radius":161.63360848278398}],"theta":2.6927937030769655,"radius":87.5},{"id":"400012","name":"贾宝玉","parent":"300002","weight":15,"type":"people","color":"#F89322","shape":3,"childNodes":[{"id":"500003","name":"袭人","parent":"400012","weight":15,"type":"people","color":"#FFCF14","shape":5,"childNodes":[],"theta":2.8049934407051724,"radius":175},{"id":"500004","name":"晴雯","parent":"400012","weight":15,"type":"people","color":"#FFEA0D","shape":7,"childNodes":[],"theta":3.1191527060641517,"radius":175},{"id":"500005","name":"茜雪","parent":"400012","weight":15,"type":"people","color":"#87B11D","shape":4,"childNodes":[],"theta":3.433311971423131,"radius":175},{"id":"500006","name":"麝月","parent":"400012","weight":15,"type":"people","color":"#008253","shape":3,"childNodes":[],"theta":3.7474712367821104,"radius":175},{"id":"500007","name":"秋纹","parent":"400012","weight":15,"type":"people","color":"#3277B5","shape":2,"childNodes":[],"theta":4.06163050214109,"radius":175},{"id":"500008","name":"惠香","parent":"400012","weight":15,"type":"people","color":"#4C549F","shape":1,"childNodes":[{"id":"300002","name":"贾政","parent":"500008","weight":15,"type":"people","color":"#F16729","shape":3,"childNodes":[],"theta":0,"radius":0}],"theta":4.375789767500069,"radius":175}],"theta":3.5903916041026207,"radius":87.5},{"id":"400013","name":"贾探春","parent":"300002","weight":15,"type":"people","color":"#764394","shape":3,"childNodes":[],"theta":5.1065177117467995,"radius":136.79398387991748},{"id":"400014","name":"贾环","parent":"300002","weight":15,"type":"people","color":"#CA0D86","shape":3,"childNodes":[],"theta":5.6609480473483424,"radius":122.51813628166745}],"theta":0,"radius":0};
+            var json = {
+                        nodes: [
+                            { data: { id: 'n0' } },
+                            { data: { id: 'n1' } },
+                            { data: { id: 'n2' } },
+                            { data: { id: 'n3' } },
+                            { data: { id: 'n4' } },
+                            { data: { id: 'n5' } },
+                            { data: { id: 'n6' } },
+                            { data: { id: 'n7' } },
+                            { data: { id: 'n8' } },
+                            { data: { id: 'n9' } },
+                            { data: { id: 'n10' } },
+                            { data: { id: 'n11' } },
+                            { data: { id: 'n12' } },
+                            { data: { id: 'n13' } },
+                            { data: { id: 'n14' } },
+                            { data: { id: 'n15' } },
+                            { data: { id: 'n16' } }
+                        ],
+                        edges: [
+                            { data: { source: 'n0', target: 'n1' } },
+                            { data: { source: 'n1', target: 'n2' } },
+                            { data: { source: 'n1', target: 'n3' } },
+                            { data: { source: 'n4', target: 'n5' } },
+                            { data: { source: 'n4', target: 'n6' } },
+                            { data: { source: 'n6', target: 'n7' } },
+                            { data: { source: 'n6', target: 'n8' } },
+                            { data: { source: 'n8', target: 'n9' } },
+                            { data: { source: 'n8', target: 'n10' } },
+                            { data: { source: 'n11', target: 'n12' } },
+                            { data: { source: 'n12', target: 'n13' } },
+                            { data: { source: 'n13', target: 'n14' } },
+                            { data: { source: 'n13', target: 'n15' } },
+                        ]
+                    };
+
+            cytoscape({                        
+                           container: document.getElementById('cy'),
+                        
+                           elements: json,
+                        
+                           boxSelectionEnabled: false,
+                           autounselectify: true,
+
+                           layout: {
+                               name: 'dagre'
+                           },
+                           minZoom: 0.3,
+                           maxZoom: 3,
+
+                           style: [
+                               {
+                                   selector: 'node',
+                                   style: {
+                                       'content': 'data(id)',
+                                       'text-opacity': 0.5,
+                                       'text-valign': 'center',
+                                       'text-halign': 'right',
+                                       'background-color': '#11479e'
+                                   }
+                               },
+
+                               {
+                                   selector: 'edge',
+                                   style: {
+                                       'width': 4,
+                                       'target-arrow-shape': 'triangle',
+                                       'line-color': '#9dbaea',
+                                       'target-arrow-color': '#9dbaea',
+                                       'curve-style': 'bezier'
+                                   }
+                               }
+                           ]
+                        
+                        });
+                                    /*
             var cloudRelation = new CloudRelation({node: '#svg-container-view', width:600, height:300, mode: 'edit'}); 
             cloudRelation.render(json);
+            */
 
 
             var d1 = [[1262304000000, 6], [1264982400000, 3057], [1267401600000, 20434], [1270080000000, 31982], [1272672000000, 26602], [1275350400000, 27826], [1277942400000, 24302], [1280620800000, 24237], [1283299200000, 21004], [1285891200000, 12144], [1288569600000, 10577], [1291161600000, 10295]];
