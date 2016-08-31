@@ -12,10 +12,14 @@
 ### 进度表 <a name="progress">&nbsp;</a>
 
 
-需求 | 小组 | 进度 | (预计) 完成时间 | 您可以做什么
+需求 | 组件 | 进度 | (预计) 完成时间 | 
 ---|:---:|---|:---:|:---:
-恶补技能... | saltshaker | ![progress](http://progressed.io/bar/30) | **6m** | 贡献
+API构筑中 | salt-api | ![progress](http://progressed.io/bar/30) | **6m** | 
+
 
 ### 截图
 Login
-![image](https://github.com/net592/SaltWebOps/blob/oneops-dev/screenshots/Login_index.png)
+![image](https://github.com/rtx3/SaltWebOps/blob/oneops-dev/screenshots/Login_index.png)
+
+
+test
