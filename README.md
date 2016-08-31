@@ -19,7 +19,6 @@ API构筑中 | salt-api | ![progress](http://progressed.io/bar/30) | **6m** |
 
 ### 截图
 Login
-![image](https://github.com/rtx3/SaltWebOps/blob/oneops-dev/screenshots/Login_index.png)
+![image](https://github.com/rtx3/deyun.io/blob/master/screenshot/screenshot1.png)
 
-
-test
+![image](https://github.com/rtx3/deyun.io/blob/master/screenshot/screenshot2.png)
