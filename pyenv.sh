@@ -14,8 +14,6 @@ fi
 
 if [ $1 == 'stop' ]; then
     echo "stopping"
-    tmp=`cat /fenghua/git/Salt-MWDS/pid.tmp`
-    kill -9 $tmp $[$tmp+1]
-    rm -rf /fenghua/git/Salt-MWDS/pid.tmp
+    lsof -i:5000|grep python|awk '{print $2}'|xargs kill -9    
     exit 0
 fi

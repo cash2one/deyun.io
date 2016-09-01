@@ -5,6 +5,8 @@ dump.rdb
 script/
 
 #python env
+pid.tmp
+pyenv.sh
 pyenv/
 .coding-ide/
 smwds/manager.py
