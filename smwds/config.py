@@ -35,6 +35,13 @@ class BaseConfig(object):
     SSUSER = "admin"
     SSPASS = "password"
 
+    #Influxdb setting
+    INDB_HOST = "localhost"
+    INDB_PORT = "8086"
+    INDB_USER = "root"
+    INDB_PASS = "root"
+    INDB_DB = "indb"
+
     #Redis cache settings
     CACHE_TYPE = 'redis'
     CACHE_REDIS_HOST = '127.0.0.1'
