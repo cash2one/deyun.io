@@ -4,7 +4,7 @@ from flask_script import Manager
 
 from config import DefaultConfig
 from utils import INSTANCE_FOLDER_PATH
-from extensions import db, login_manager, cache, Anonymous, indb
+from extensions import db, login_manager, cache, Anonymous
 from filters import format_date, pretty_date, nl2br
 from user import User
 from weblib.redissession import RedisSession
@@ -69,13 +69,6 @@ def configure_app(app, config=None):
 def configure_extensions(app):
         # flask-sqlalchemy
     db.init_app(app)
-
-    #influxdb
-    indb.host = app.config['INDB_HOST']
-    indb.port = app.config['INDB_PORT']
-    indb.username = app.config['INDB_USER']
-    indb.password = app.config['INDB_PASS']
-    indb.database = app.config['INDB_DB']
 
     # Sentry
     if app.config['SENTRY_DSN']:

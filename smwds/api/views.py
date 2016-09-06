@@ -7,15 +7,20 @@ from flask_login import login_user, logout_user, current_user, login_required
 from flask_restful import Api, Resource
 from extensions import cache, db
 from weblib.libpepper import Pepper
+from weblib.indbapi import Indb
 from api.models import Masterdb, Nodedb, Location
 
 
-
-saltapi = Pepper()
 api = Blueprint('api', __name__, url_prefix='/api/v1')
-#api = Blueprint('api', __name__)
+
 api_wrap = Api(api, catch_all_404s=False)
 
+saltapi = Pepper("http://localhost:8000")
+
+@api.before_request
+def api_before_request():
+    pass
+    
 
 def getsaltapi(master):
     sapi = Pepper(master.ret_api())
@@ -80,7 +85,15 @@ def get_toplogy():
     #return json.dumps(data)
     return json.dumps(data)
 
+class influx_db(Resource):
+    @cache.memoize(timeout= 60 * 60)
+    def get(self,table,db,node):
+        indbapi = Indb('http://' + current_app.config['INDB_HOST'] + ':' + current_app.config['INDB_PORT'])
+        ret = indbapi.ret_point_24h(table=table, db=db, host=node)
+        return json.dumps(ret)
+
 
 api_wrap.add_resource(saltapi_get, '/<string:master_id>/<string:path>')
 api_wrap.add_resource(saltapi_monion, '/nodes/<string:minion_id>/<string:path>')
+api_wrap.add_resource(influx_db, '/indb/24/<string:node>/<string:db>/<string:table>')
 

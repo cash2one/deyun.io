@@ -38,9 +38,9 @@ class BaseConfig(object):
     #Influxdb setting
     INDB_HOST = "localhost"
     INDB_PORT = "8086"
-    INDB_USER = "root"
-    INDB_PASS = "root"
-    INDB_DB = "indb"
+    INDB_USER = "admin"
+    INDB_PASS = "greatpasswordis123"
+
 
     #Redis cache settings
     CACHE_TYPE = 'redis'

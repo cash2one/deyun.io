@@ -2,8 +2,7 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from flask import session
-from influxdb import InfluxDBClient
-indb = InfluxDBClient()
+
 db = SQLAlchemy()
 
 from flask_login import LoginManager
