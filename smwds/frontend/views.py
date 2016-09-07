@@ -5,7 +5,9 @@ from frontend.form import LoginForm
 from api.views import get_toplogy
 from user import User
 from extensions import cache
+from node import Indb_func
 import uuid, hashlib
+import requests
 
 frontend = Blueprint('frontend', __name__, template_folder='../templates')
 
@@ -27,28 +29,33 @@ def frontend_teardown_request(extensions):
 @frontend.route('/testcache')
 @cache.memoize(timeout=60*2)
 def testcache():
-  name = 'mink'
-  return name + " " + str(cache.get('testcache'))
+    name = 'mink'
+    return name + " " + str(cache.get('testcache'))
 
 
 def ret_ip():
-  if request.headers.getlist("X-Forwarded-For"):
-    t_ip = request.headers.getlist("X-Forwarded-For")[0]
-  else:
-    t_ip = request.remote_addr
-  return t_ip
+    if request.headers.getlist("X-Forwarded-For"):
+      t_ip = request.headers.getlist("X-Forwarded-For")[0]
+    else:
+      t_ip = request.remote_addr
+    return t_ip
 
 def ret_index():
-  index_data = {
-                'top':get_toplogy(),
-                'user': {
-                    'name': session['username'],
-                    'remember_me': session['remember_me'],
-                    'ip':ret_ip()
-                        },
-                'text': 'Bootstrap is beautiful, and Flask is cool!'
-                }
-  return index_data
+    #r = requests.get("http://127.0.0.1:8080/api/v1/indb/24/Ali.master.cn00/graphite/memory_percent_usedWOBuffersCaches")
+    r = Indb_func.monitor_data(table='memory_percent_usedWOBuffersCaches', db='graphite', node='Ali.master.cn00')
+    p = Indb_func.monitor_data(table='cpu_user', db='graphite', node='Ali.master.cn00')
+    index_data = {
+                  'top':get_toplogy(),
+                  'user': {
+                      'name': session['username'],
+                      'remember_me': session['remember_me'],
+                      'ip':ret_ip()
+                          },
+                  'mem': r,
+                  'cpu': p
+                  }
+    current_app.logger.info(index_data)
+    return index_data
 
 
 @frontend.route('/')

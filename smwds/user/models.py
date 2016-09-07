@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sqlalchemy import Column, desc
+from sqlalchemy import Column, desc, func
 from sqlalchemy.orm import backref
 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -61,6 +61,7 @@ class User(db.Model, UserMixin):
 
     sex = db.synonym('_sex', descriptor=property(_get_sex, _set_sex))
 
+
     # ================================================================
     role_code = Column(db.SmallInteger, default=USER, nullable=False)
 
@@ -81,6 +82,12 @@ class User(db.Model, UserMixin):
 
     # ================================================================
     # Class methods
+    @classmethod
+    def get_count(cls):
+        count_q = cls.query.statement.with_only_columns([func.count()]).order_by(None)
+        count = db.session.execute(count_q).scalar()
+        return count
+
 
     @classmethod
     def authenticate(cls, login, password):

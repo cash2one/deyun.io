@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sqlalchemy import Column, desc
+from sqlalchemy import Column, desc, func
 from sqlalchemy.orm import backref
 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -45,6 +45,12 @@ class Masterdb(db.Model):
     def ret_api(self):
         return self.master_api_url + ":" + str(self.master_api_port)
 
+    @classmethod
+    def get_count(cls):
+        count_q = cls.query.statement.with_only_columns([func.count()]).order_by(None)
+        count = db.session.execute(count_q).scalar()
+        return count
+
 
 class Tag(db.Model):
     id = Column(UUIDType(binary=False), primary_key=True)
@@ -85,6 +91,12 @@ class Nodedb(db.Model):
     master_id = Column(UUIDType(binary=False), db.ForeignKey('masterdb.id'), nullable=False, default="", info={'verbose_name' : u'Master',})
     master = db.relationship('Masterdb', backref = 'nodes')
     avatar = Column(db.String(STRING_LEN), nullable=False, default='')
+
+    @classmethod
+    def get_count(cls):
+        count_q = cls.query.statement.with_only_columns([func.count()]).order_by(None)
+        count = db.session.execute(count_q).scalar()
+        return count
 
 
     

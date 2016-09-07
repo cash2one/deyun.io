@@ -7,7 +7,8 @@ from flask_script.commands import ShowUrls, Clean
 from extensions import db
 from user import User
 from api import Masterdb, Nodedb,Location
-import uuid
+from node import Perf
+import uuid, random
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -40,7 +41,15 @@ def initdb():
     init DB
     """
     app.initdb()
-    
+
+@manager.command
+def testdb():  
+    """
+    test database
+    """
+    print("User Count: " + str(User.get_count()))
+    print("Master Count: " + str(Masterdb.get_count()))
+    print("Node Count: " + str(Nodedb.get_count()))
 
 @manager.command
 def testdata():
@@ -86,6 +95,23 @@ def testdata():
               location=demolocation,
               master=demomaster
               )
+    for i in range(100):
+        perf_demo1 = Perf(
+                 node_id=demonode1.id,
+                 node_name=demonode1.node_name,
+                 service="sa",
+                 result=True,
+                 value="",
+                     )
+        db.session.add(perf_demo1)
+        perf_demo2 = Perf(
+                 node_id=demonode2.id,
+                 node_name=demonode2.node_name,
+                 service="sa",
+                 result=True,
+                 value="",
+                     )
+        db.session.add(perf_demo2)    
     
     db.session.add(demo)
     db.session.add(demomaster)

@@ -29,14 +29,10 @@ class BaseConfig(object):
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     UPLOAD_FOLDER = os.path.join(INSTANCE_FOLDER_PATH, 'uploads')
     
-    #Saltstack api settings
-    SSAPI = "your ip or web address"
-    SSPORT = "1000"
-    SSUSER = "admin"
-    SSPASS = "password"
+
 
     #Influxdb setting
-    INDB_HOST = "localhost"
+    INDB_HOST = "http://"
     INDB_PORT = "8086"
     INDB_USER = "admin"
     INDB_PASS = "greatpasswordis123"
