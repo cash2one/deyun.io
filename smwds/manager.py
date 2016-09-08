@@ -50,6 +50,9 @@ def testdb():
     print("User Count: " + str(User.get_count()))
     print("Master Count: " + str(Masterdb.get_count()))
     print("Node Count: " + str(Nodedb.get_count()))
+    print("Perf Count: " + str(Perf.get_count()))
+    print("Test Node 1 SA: " + str(Perf.get_perf('test node 1')))
+    print("Test Node 2 SA: " + str(Perf.get_perf('test node 2')))
 
 @manager.command
 def testdata():
@@ -100,16 +103,16 @@ def testdata():
                  node_id=demonode1.id,
                  node_name=demonode1.node_name,
                  service="sa",
-                 result=True,
-                 value="",
+                 result=True if random.random() > 0.5 else False,
+                 value="This is test value",
                      )
         db.session.add(perf_demo1)
         perf_demo2 = Perf(
                  node_id=demonode2.id,
                  node_name=demonode2.node_name,
                  service="sa",
-                 result=True,
-                 value="",
+                 result=True if random.random() > 0.5 else False,
+                 value="This is test value",
                      )
         db.session.add(perf_demo2)    
     

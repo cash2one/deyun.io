@@ -32,7 +32,7 @@ class BaseConfig(object):
 
 
     #Influxdb setting
-    INDB_HOST = "http://"
+    INDB_HOST = "http://1"
     INDB_PORT = "8086"
     INDB_USER = "admin"
     INDB_PASS = "greatpasswordis123"
