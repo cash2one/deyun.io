@@ -11,7 +11,7 @@ from extensions import db
 from utils import get_current_time
 from constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS, \
     SEX_TYPES, STRING_LEN
-from sqlalchemy_utils import UUIDType
+from sqlalchemy_utils import UUIDType,  JSONType
 
 
 
@@ -41,6 +41,7 @@ class Masterdb(db.Model):
     avatar = Column(db.String(STRING_LEN), nullable=False, default='')
     token = Column(db.String(STRING_LEN), nullable=False, default='')
     token_expire = Column(db.Float,nullable=False, default=0.0)
+    minion_data = Column(JSONType,nullable=True)
     
     def ret_api(self):
         return self.master_api_url + ":" + str(self.master_api_port)
@@ -91,6 +92,7 @@ class Nodedb(db.Model):
     master_id = Column(UUIDType(binary=False), db.ForeignKey('masterdb.id'), nullable=False, default="", info={'verbose_name' : u'Master',})
     master = db.relationship('Masterdb', backref = 'nodes')
     avatar = Column(db.String(STRING_LEN), nullable=False, default='')
+    minion_data = Column(JSONType,nullable=True)
 
     @classmethod
     def get_count(cls):
