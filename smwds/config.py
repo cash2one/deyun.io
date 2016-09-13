@@ -42,9 +42,9 @@ class BaseConfig(object):
     CACHE_TYPE = 'redis'
     CACHE_REDIS_HOST = '127.0.0.1'
     CACHE_REDIS_PORT = 6379
-    CACHE_REDIS_DB = ''
+    CACHE_REDIS_DB = '3'
     CACHE_REDIS_PASSWORD = ''
-    REDIS_URL = "redis://localhost:6379/3"
+    REDIS_URL = "redis://localhost:6379"
     PERMANENT_SESSION_LIFETIME = timedelta(seconds= 60 * 60 * 24)
 
 

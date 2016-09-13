@@ -5,7 +5,7 @@ import time
 import json
 import requests
 import hashlib
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, session
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_restful import Api, Resource
 from extensions import cache, db
@@ -17,6 +17,7 @@ from api.models import Masterdb, Nodedb, Location
 api = Blueprint('api', __name__, url_prefix='/api/v1')
 
 api_wrap = Api(api, catch_all_404s=False)
+
 
 
 @api.before_request
@@ -60,23 +61,31 @@ class saltapi_get(Resource):
     def get(self, master_id, path):
         target = Masterdb.query.filter_by(id=master_id).first_or_404()
         t_api = getsaltapi(target)
-        return t_api.req_get('/' + path)
+        try:
+            data = t_api.req_get('/' + path)
+        except Exception as e:
+            current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + e)
+            return e 
+        current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + 200)
+        return data
+
 
 
 class saltapi_monion(Resource):
     '''
     A correct api qunery would update minion db in database 
     '''
-    @cache.memoize(timeout=60 * 60)
-    def get(self, minion_id, path):
-        target_node = Nodedb.query.filter_by(node_name=monion_id).first_or_404()
-        t_api = getsaltapi(ß)
+    @cache.cached(timeout=60 * 60)
+    def get(self, minion_id):
+        target_node = Nodedb.query.filter_by(node_name=minion_id).first_or_404()
+        t_api = getsaltapi_node(target_node)
         try:
-            api_data = t_api.req_get('/' + target_nodez.name + '/' + path)
+            api_data = t_api.req_get('/minions/' + target_node.node_name)
         except Exception as e:
             return e
         if api_data['return'][0] == {}:
-            return {'status': 200, 'result': 'no data'}
+            current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + 201) 
+            return {'status': 201, 'result': 'no data'}     
         else:
 
             md5_data = json.dumps(api_data['return'][0], sort_keys=True)
@@ -91,7 +100,8 @@ class saltapi_monion(Resource):
                 target_node.minion_data = db_data
                 db.session.add(target_node)
                 db.session.commit()
-            return data
+            current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + 200)
+            return md5_data
 
 
 def get_toplogy():
@@ -127,6 +137,6 @@ class influx_db(Resource):
 
 api_wrap.add_resource(saltapi_get, '/<string:master_id>/<string:path>')
 api_wrap.add_resource(
-    saltapi_monion, '/nodes/<string:minion_id>/<string:path>')
+    saltapi_monion, '/nodes/<string:minion_id>')
 api_wrap.add_resource(
     influx_db, '/indb/24/<string:node>/<string:db>/<string:table>')

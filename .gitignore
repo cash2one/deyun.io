@@ -10,7 +10,7 @@ pyenv.sh
 pyenv/
 .coding-ide/
 smwds/manager.py
-smwds/manager.py
+smwds/prod.py
 smwds/api/test.py
 */manager.py
 manager.py

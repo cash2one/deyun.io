@@ -27,7 +27,7 @@ def frontend_teardown_request(extensions):
     pass
 
 @frontend.route('/testcache')
-@cache.memoize(timeout=60*2)
+@cache.memoize(timeout=60*20)
 def testcache():
     name = 'mink'
     return name + " " + str(cache.get('testcache'))
@@ -61,7 +61,7 @@ def ret_index():
 @frontend.route('/')
 @frontend.route('/index')
 @login_required
-@cache.memoize(timeout=10)
+@cache.memoize(timeout=100)
 def index():
     #if session_id: 
     #    if g.user.session['sid'] == session_id :
