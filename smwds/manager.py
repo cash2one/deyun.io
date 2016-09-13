@@ -74,17 +74,17 @@ def testdata():
     demomaster = Masterdb(
                 id=uuid.uuid4(),
                 master_name=u'test api',
-                master_ip=u'1.1.1.1',
+                master_ip=u'115.28.11',
                 master_port=u'1111',
                 master_api_url=u'http://salt.salt.com/api/',
                 master_api_port=u'80',
                 username=u'salt',
-                password=u'',
+                password=u'qwer1234',
                 location=demolocation
                 )
     demonode1 = Nodedb(
                 id=uuid.uuid4(),
-                node_name=u'test node 1',
+                node_name=u'test.node.1',
                 node_ip=u'1.1.2.1',
                 bio=u'test descrption',
                 location=demolocation,
@@ -92,7 +92,7 @@ def testdata():
                 )
     demonode2 = Nodedb(
               id=uuid.uuid4(),
-              node_name=u'test node 2' ,
+              node_name=u'test.node.2' ,
               node_ip=u'1.1.2.2',
               bio=u'test descrption',
               location=demolocation,

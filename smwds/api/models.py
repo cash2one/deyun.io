@@ -41,7 +41,7 @@ class Masterdb(db.Model):
     avatar = Column(db.String(STRING_LEN), nullable=False, default='')
     token = Column(db.String(STRING_LEN), nullable=False, default='')
     token_expire = Column(db.Float,nullable=False, default=0.0)
-    minion_data = Column(JSONType,nullable=True)
+    minion_data = Column(JSONType(1000),nullable=False, default ='')
     
     def ret_api(self):
         return self.master_api_url + ":" + str(self.master_api_port)
@@ -92,7 +92,7 @@ class Nodedb(db.Model):
     master_id = Column(UUIDType(binary=False), db.ForeignKey('masterdb.id'), nullable=False, default="", info={'verbose_name' : u'Master',})
     master = db.relationship('Masterdb', backref = 'nodes')
     avatar = Column(db.String(STRING_LEN), nullable=False, default='')
-    minion_data = Column(JSONType,nullable=True)
+    minion_data = Column(JSONType(1000),nullable=False, default ='')
 
     @classmethod
     def get_count(cls):

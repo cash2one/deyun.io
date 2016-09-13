@@ -4,6 +4,7 @@
 import time
 import json
 import requests
+import hashlib
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_restful import Api, Resource
@@ -24,6 +25,7 @@ def api_before_request():
 
 
 def getsaltapi(master):
+
     sapi = Pepper(master.ret_api())
     if ((time.time() - master.token_expire) >= 0.0):
         ret = sapi.login(master.username, master.password, 'pam')
@@ -62,12 +64,34 @@ class saltapi_get(Resource):
 
 
 class saltapi_monion(Resource):
-
+    '''
+    A correct api qunery would update minion db in database 
+    '''
     @cache.memoize(timeout=60 * 60)
     def get(self, minion_id, path):
-        target_node = Nodedb.query.filter_by(id=monion_id).first_or_404()
-        t_api = getsaltapi(target_node)
-        return t_api.req_get('/' + target_nodez.name + '/' + path)
+        target_node = Nodedb.query.filter_by(node_name=monion_id).first_or_404()
+        t_api = getsaltapi(ß)
+        try:
+            api_data = t_api.req_get('/' + target_nodez.name + '/' + path)
+        except Exception as e:
+            return e
+        if api_data['return'][0] == {}:
+            return {'status': 200, 'result': 'no data'}
+        else:
+
+            md5_data = json.dumps(api_data['return'][0], sort_keys=True)
+            db_data = api_data['return'][0]
+            db_data['md5'] = hashlib.md5(str(md5_data).encode()).hexdigest()
+
+            if target_node.minion_data == '':
+                target_node.minion_data = db_data
+                db.session.add(target_node)
+                db.session.commit()
+            elif target_node.minion_data['md5'] != db_data['md5']:
+                target_node.minion_data = db_data
+                db.session.add(target_node)
+                db.session.commit()
+            return data
 
 
 def get_toplogy():
