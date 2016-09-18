@@ -6,7 +6,7 @@ from sqlalchemy_utils import aggregated
 from sqlalchemy_utils import UUIDType
 from extensions import db, cache
 from utils import get_current_time
-from api import Masterdb, Nodedb
+from api.models import Masterdb, Nodedb
 from constants import STRING_LEN
 
 

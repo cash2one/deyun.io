@@ -13,6 +13,7 @@ from weblib.libpepper import Pepper
 from weblib.indbapi import Indb
 from api.models import Masterdb, Nodedb, Location
 
+from flask_sqlalchemy import Pagination 
 
 api = Blueprint('api', __name__, url_prefix='/api/v1')
 
@@ -24,6 +25,8 @@ api_wrap = Api(api, catch_all_404s=False)
 def api_before_request():
     pass
 
+def api_log(status_code):
+    current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + status_code)
 
 def getsaltapi(master):
 
@@ -64,9 +67,9 @@ class saltapi_get(Resource):
         try:
             data = t_api.req_get('/' + path)
         except Exception as e:
-            current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + e)
+            api_log(e)
             return e 
-        current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + 200)
+        api_log(200)
         return data
 
 
@@ -84,7 +87,7 @@ class saltapi_monion(Resource):
         except Exception as e:
             return e
         if api_data['return'][0] == {}:
-            current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + 201) 
+            api_log(201)
             return {'status': 201, 'result': 'no data'}     
         else:
 
@@ -100,10 +103,13 @@ class saltapi_monion(Resource):
                 target_node.minion_data = db_data
                 db.session.add(target_node)
                 db.session.commit()
-            current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + 200)
+            api_log(200)
             return md5_data
 
 
+
+
+@cache.memoize(timeout=60 * 60)
 def get_toplogy():
     m_node = Masterdb.query.all()
     s_node = Nodedb.query.all()
@@ -132,6 +138,7 @@ class influx_db(Resource):
         indbapi = Indb(current_app.config[
                        'INDB_HOST'] + ':' + current_app.config['INDB_PORT'])
         ret = indbapi.ret_point_24h(table=table, db=db, host=node)
+
         return json.dumps(ret)
 
 

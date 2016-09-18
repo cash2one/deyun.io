@@ -152,6 +152,8 @@ class Indb(object):
         data = ret['results'][0]['series'][0]['values']
         list_date = []
         list_lable = []
+        if data == None:
+            return [list_lable,list_date]
         for item in data:
             timea = item[0]
             timeArray = datetime.datetime.strptime(
