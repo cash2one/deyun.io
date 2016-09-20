@@ -26,7 +26,7 @@ def api_before_request():
     pass
 
 def api_log(status_code):
-    current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + status_code)
+    current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + str(status_code))
 
 def getsaltapi(master):
 
@@ -92,11 +92,16 @@ class saltapi_monion(Resource):
         else:
 
             md5_data = json.dumps(api_data['return'][0], sort_keys=True)
-            db_data = api_data['return'][0]
+            db_data = api_data['return'][0][minion_id]
             db_data['md5'] = hashlib.md5(str(md5_data).encode()).hexdigest()
 
             if target_node.minion_data == '':
                 target_node.minion_data = db_data
+                target_node.os = db_data['lsb_distrib_description'] 
+                target_node.cpu = db_data['num_cpus'] + ' * '  + db_data['cpu_model'] 
+                target_node.kenel = db_data['kernelrelease']
+                target_node.mem = db_data['mem_total']
+                target_node.host = db_data['host']
                 db.session.add(target_node)
                 db.session.commit()
             elif target_node.minion_data['md5'] != db_data['md5']:

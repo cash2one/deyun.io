@@ -23,6 +23,10 @@ class BaseConfig(object):
 
     LOG_FOLDER = os.path.join(INSTANCE_FOLDER_PATH, 'logs')
 
+    #sql query log setting
+    DB_QUERY_TIMEOUT = 0.0001
+    SQLALCHEMY_RECORD_QUERIES = True
+
     # Fild upload, should override in production.
     # Limited the maximum allowed payload to 16 megabytes.
     # http://flask.pocoo.org/docs/patterns/fileuploads/#improving-uploads

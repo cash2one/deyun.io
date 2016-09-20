@@ -137,6 +137,11 @@ class Nodedb(db.Model):
     master = db.relationship('Masterdb', backref='nodes')
     avatar = Column(db.String(STRING_LEN), nullable=False, default='')
     minion_data = Column(JSONType(1000), nullable=False, default='')
+    os = Column(db.String(STRING_LEN), nullable=False, default='')
+    kenel = Column(db.String(STRING_LEN), nullable=False, default='')
+    cpu = Column(db.String(STRING_LEN), nullable=False, default='')
+    mem  = Column(db.String(STRING_LEN), nullable=False, default='')
+    host = Column(db.String(STRING_LEN), nullable=False, default='')
 
     @classmethod
     def get_count(cls):

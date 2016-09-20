@@ -29,12 +29,13 @@ def create_app(config=None, app_name=None):
         static_folder=None
     )
     configure_app(app, config)
-    configure_hook(app)
+    
     configure_blueprints(app)
     configure_extensions(app)
     configure_logging(app)
     configure_template_filters(app)
     configure_error_handlers(app)
+    configure_hook(app)
 
     return app
 
@@ -86,10 +87,29 @@ def configure_extensions(app):
 
 
 def configure_hook(app):
+    from flask_sqlalchemy import get_debug_queries
+    import logging
+
+
+    sql_logger = logging.getLogger('query')
 
     @app.before_request
     def before_request():
         pass
+
+    @app.after_request
+    def query_log(resp):
+        if app.config['SQLALCHEMY_RECORD_QUERIES'] == False:
+            pass
+        for query in get_debug_queries():
+            if query.duration >= app.config['DB_QUERY_TIMEOUT']:
+                sql_logger.warn(
+                            ('Context:{}\nSLOW QUERY: {}\nParameters: {}\n'
+                                'Duration: {}\n').format(query.context, query.statement, 
+                                query.parameters, query.duration))
+        return resp
+
+
 
 
 def configure_blueprints(app):
@@ -121,6 +141,7 @@ def configure_logging(app):
     import logging
     import os
     from logging.handlers import SMTPHandler
+    from logging import getLogger
 
     # Set info level on logger, which might be overwritten by handers.
     # Suppress DEBUG messages.
@@ -135,6 +156,20 @@ def configure_logging(app):
         '[in %(pathname)s:%(lineno)d]')
     )
     app.logger.addHandler(info_file_handler)
+
+    #Show query log
+    sql_logger = getLogger(name='query')
+    sql_log = os.path.join(app.config['LOG_FOLDER'], 'query.log')
+    sql_log_handler = logging.handlers.RotatingFileHandler(
+        sql_log, maxBytes=100000, backupCount=10)
+    sql_log_handler.setLevel(logging.WARN)
+    sql_log_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s '
+        '[in %(pathname)s:%(lineno)d]')
+    )
+    sql_logger.addHandler(sql_log_handler)
+
+    2
 
     # Testing
     #app.logger.info("testing info.")

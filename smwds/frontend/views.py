@@ -63,12 +63,9 @@ def ret_index():
 @login_required
 @cache.memoize(timeout=100)
 def index():
-    #if session_id: 
-    #    if g.user.session['sid'] == session_id :
-    #        return render_template('index.html', index_data=ret_index())
-    #    else :
-    #        return redirect(url_for('frontend.login')) 
     s_id = request.args.get('s_id')
+    if s_id == None: 
+        return redirect(url_for('frontend.login')) 
     check_id = hashlib.md5(str(session['uid']).encode('utf-8')).hexdigest()
     if s_id == check_id:
         return render_template('index.html', index_data=ret_index())
