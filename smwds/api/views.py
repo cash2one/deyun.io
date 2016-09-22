@@ -84,6 +84,13 @@ class saltapi_monion(Resource):
         t_api = getsaltapi_node(target_node)
         try:
             api_data = t_api.req_get('/minions/' + target_node.node_name)
+            target_node.minion_data = db_data
+            target_node.os = db_data['lsb_distrib_description'] 
+            target_node.cpu = db_data['num_cpus'] + ' * '  + db_data['cpu_model'] 
+            target_node.kenel = db_data['kernelrelease']
+            target_node.mem = db_data['mem_total']
+            target_node.host = db_data['host']
+            db.session.add(target_node)
         except Exception as e:
             return e
         if api_data['return'][0] == {}:
@@ -96,13 +103,6 @@ class saltapi_monion(Resource):
             db_data['md5'] = hashlib.md5(str(md5_data).encode()).hexdigest()
 
             if target_node.minion_data == '':
-                target_node.minion_data = db_data
-                target_node.os = db_data['lsb_distrib_description'] 
-                target_node.cpu = db_data['num_cpus'] + ' * '  + db_data['cpu_model'] 
-                target_node.kenel = db_data['kernelrelease']
-                target_node.mem = db_data['mem_total']
-                target_node.host = db_data['host']
-                db.session.add(target_node)
                 db.session.commit()
             elif target_node.minion_data['md5'] != db_data['md5']:
                 target_node.minion_data = db_data

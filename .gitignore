@@ -1,3 +1,6 @@
+#configration
+production.cfg
+
 #redis file
 dump.rdb
 

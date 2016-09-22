@@ -2,6 +2,7 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from flask import session
+import celery
 
 db = SQLAlchemy()
 
@@ -21,3 +22,6 @@ class Anonymous(AnonymousUserMixin):
   def __init__(self):
     self.name = 'Guest'
     self.id = session.session_id
+
+
+

@@ -51,6 +51,10 @@ class BaseConfig(object):
     REDIS_URL = "redis://localhost:6379"
     PERMANENT_SESSION_LIFETIME = timedelta(seconds= 60 * 60 * 24)
 
+    # Celery configuration
+    CELERY_BROKER_URL = 'redis://localhost:6379/5'
+    CELERY_BACKEND = 'redis://localhost:6379/5'
+
 
 class DefaultConfig(BaseConfig):
 

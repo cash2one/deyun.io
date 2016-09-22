@@ -8,6 +8,7 @@ from extensions import db, login_manager, cache, Anonymous
 from filters import format_date, pretty_date, nl2br
 from user import User
 from weblib.redissession import RedisSession
+from celery import Celery
 
 import os
 
@@ -40,6 +41,10 @@ def create_app(config=None, app_name=None):
     return app
 
 
+
+
+
+
 def configure_app(app, config=None):
     """Different ways of configurations."""
 
@@ -66,6 +71,7 @@ def configure_app(app, config=None):
 
     cache.init_app(app, config=cache_config)
     RedisSession(app)
+    
 
 def configure_extensions(app):
         # flask-sqlalchemy
@@ -168,8 +174,6 @@ def configure_logging(app):
         '[in %(pathname)s:%(lineno)d]')
     )
     sql_logger.addHandler(sql_log_handler)
-
-    2
 
     # Testing
     #app.logger.info("testing info.")
