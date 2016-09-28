@@ -3,11 +3,21 @@
 
 from celery import Celery, platforms
 from flask import Flask
+from extensions import db 
 import random, time, json
+from datetime import timedelta
+from celery.schedules import crontab
+from weblib.libpepper import Pepper
+from weblib.indbapi import Indb
 
 
 
 app = Flask(__name__)
+
+app.config.from_pyfile('prod.py', silent=True)
+
+indbapi = Indb(app.config[
+                    'INDB_HOST'] + ':' + app.config['INDB_PORT'])
 
 def make_celery(app):
     celery = Celery(app.__class__)
@@ -40,3 +50,8 @@ def hello_world(x=16, y=16):
     result = "add((x){}, (y){})".format(context['x'], context['y'])
     goto = "{}".format(context['id'])
     return json.dumps({'result':result, 'goto':goto})
+
+@celery.task
+def sync_from_influxdb():
+    return indbapi.test()
+

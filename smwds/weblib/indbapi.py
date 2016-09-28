@@ -14,6 +14,37 @@ class Indb(object):
 
         self.api_url = api_url
 
+    def test(self):
+        url = self.api_url + '/query?q=SHOW+DATABASES&db=_internal'
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        params = {'url': url,
+                  'headers': headers,
+                  'verify': False,
+                  }
+        try:
+            resp = requests.get(**params)
+            if resp.status_code == 401:
+                raise IndbException(str(resp.status_code) +
+                                    ':Authentication denied')
+                return
+
+            if resp.status_code == 500:
+                raise IndbException(str(resp.status_code) + ':Server error.')
+                return
+
+            if resp.status_code == 404:
+                raise IndbException(str(resp.status_code) +
+                                    ' :This request returns nothing.')
+                return
+        except IndbException as e:
+            logger.error('Error with request: {0}'.format(e))
+            return
+        return resp.json()
+
     def get_hosts(self, table, db):
 
         url = self.api_url + '/query?q=SHOW+TAG+VALUES+FROM+%22' + \
