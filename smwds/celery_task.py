@@ -55,3 +55,7 @@ def hello_world(x=16, y=16):
 def sync_from_influxdb():
     return indbapi.test()
 
+
+@celery.task
+def sync_from_saltstack():
+    pass 
