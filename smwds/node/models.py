@@ -4,6 +4,7 @@ from sqlalchemy import Column, desc, func
 from sqlalchemy.orm import backref
 from sqlalchemy_utils import aggregated
 from sqlalchemy_utils import UUIDType
+from sqlalchemy_utils import ScalarListType
 from extensions import db, cache
 from utils import get_current_time
 from api.models import Masterdb, Nodedb
@@ -51,7 +52,7 @@ class Perf_Node(db.Model):
     id = Column(db.Integer, primary_key=True)
     sensu_node_name = Column(db.String(255), nullable=False,
                        unique=False, index=True)
-    sensu_subscriptions = Column(db.String(255), nullable=False,
+    sensu_subscriptions = Column(ScalarListType(), nullable=False,
                        unique=False)
     sensu_version = Column(db.String(255), nullable=False,
                        unique=False)

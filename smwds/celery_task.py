@@ -9,8 +9,8 @@ from datetime import timedelta
 from celery.schedules import crontab
 from weblib.libpepper import Pepper
 from weblib.indbapi import Indb
-
-
+from weblib.sensuapi import SensuAPI
+from node import Perf, Perf_Node, Perf_Cpu, Perf_Mem, Perf_TCP, Perf_Disk, Perf_System_Load, Perf_Socket, Perf_Process_Count, Perf_Netif, Perf_Ping
 
 app = Flask(__name__)
 
@@ -18,6 +18,9 @@ app.config.from_pyfile('prod.py', silent=True)
 
 indbapi = Indb(app.config[
                     'INDB_HOST'] + ':' + app.config['INDB_PORT'])
+
+sensuapi = SensuAPI(app.config[
+                    'SENSU_HOST'] + ':' + app.config['SENSU_PORT'])
 
 def make_celery(app):
     celery = Celery(app.__class__)
@@ -53,7 +56,17 @@ def hello_world(x=16, y=16):
 
 @celery.task
 def sync_from_influxdb():
-    return indbapi.test()
+    data = sensuapi.get('clients')
+    for item in data:
+        sensunode = Perf_Node(
+                    sensu_node_name = item["name"],
+                    sensu_subscriptions = item["address"],
+                    sensu_version = item["version"],
+                    sensu_timestamp = item["timestamp"]
+                    )
+        db.session.add(sensunode)
+    db.session.commit()
+    return 
 
 
 @celery.task
