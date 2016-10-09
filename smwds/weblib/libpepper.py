@@ -22,7 +22,7 @@ except ImportError:
         HTTPError, URLError
     import urlparse
 
-logger = logging.getLogger('pepper')
+logger = logging.getLogger('api')
 
 
 class PepperException(Exception):

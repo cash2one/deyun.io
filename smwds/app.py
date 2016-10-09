@@ -153,6 +153,7 @@ def configure_logging(app):
     # Suppress DEBUG messages.
     app.logger.setLevel(logging.INFO)
 
+    #info_log
     info_log = os.path.join(app.config['LOG_FOLDER'], 'info.log')
     info_file_handler = logging.handlers.RotatingFileHandler(
         info_log, maxBytes=100000, backupCount=10)
@@ -163,17 +164,29 @@ def configure_logging(app):
     )
     app.logger.addHandler(info_file_handler)
 
-    #Show query log
+    #query log
     sql_logger = getLogger(name='query')
     sql_log = os.path.join(app.config['LOG_FOLDER'], 'query.log')
     sql_log_handler = logging.handlers.RotatingFileHandler(
         sql_log, maxBytes=100000, backupCount=10)
-    sql_log_handler.setLevel(logging.WARN)
+    sql_log_handler.setLevel(logging.INFO)
     sql_log_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s '
         '[in %(pathname)s:%(lineno)d]')
     )
     sql_logger.addHandler(sql_log_handler)
+
+    #api log
+    api_logger = getLogger(name='api')
+    api_log = os.path.join(app.config['LOG_FOLDER'], 'api.log')
+    api_log_handler = logging.handlers.RotatingFileHandler(
+        api_log, maxBytes=100000, backupCount=10)
+    api_log_handler.setLevel(logging.INFO)
+    api_log_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s '
+        '[in %(pathname)s:%(lineno)d]')
+    )
+    api_logger.addHandler(sql_log_handler)
 
     # Testing
     #app.logger.info("testing info.")

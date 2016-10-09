@@ -2,7 +2,7 @@ import requests
 import logging
 import os
 import datetime
-
+logger = logging.getLogger('api')
 
 class IndbException(Exception):
     pass
@@ -43,6 +43,7 @@ class Indb(object):
         except IndbException as e:
             logger.error('Error with request: {0}'.format(e))
             return
+        logger.info('Test Comlpeted with sucess.')
         return resp.json()
 
     def get_hosts(self, table, db):

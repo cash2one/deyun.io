@@ -42,6 +42,30 @@ class Perf(db.Model):
         else:
             return 0.0
 
+class Perf_Node(db.Model):
+    __tablename__ = 'perf_sensu_nodes'
+
+    def __repr__(self):
+        return '<sensu_node %r>' % self.sensu_node_name
+
+    id = Column(db.Integer, primary_key=True)
+    sensu_node_name = Column(db.String(255), nullable=False,
+                       unique=False, index=True)
+    sensu_subscriptions = Column(db.String(255), nullable=False,
+                       unique=False)
+    sensu_version = Column(db.String(255), nullable=False,
+                       unique=False)
+    sensu_timestamp = Column(db.DateTime, nullable=False,
+                       unique=False, default=get_current_time)
+    @classmethod
+    def get_count(cls):
+        count_q = cls.query.statement.with_only_columns(
+            [func.count()]).order_by(None)
+        count = db.session.execute(count_q).scalar()
+        return count
+
+
+
 class Perf_Cpu(db.Model):
     __tablename__ = 'perf_monitor_data_cpu'
 
