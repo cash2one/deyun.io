@@ -4,7 +4,7 @@
 from celery import Celery, platforms
 from flask import Flask, current_app
 from extensions import db 
-import random, time, json
+import random, time, json, redis
 from app import create_celery_app
 from celery.signals import task_prerun
 from datetime import timedelta
@@ -34,7 +34,9 @@ indbapi = Indb(config['INDB_HOST'] + ':' + config['INDB_PORT'])
 
 sensuapi = SensuAPI(config['SENSU_HOST'] + ':' + config['SENSU_PORT'])
 
+saltapi = Pepper(config['SALTAPI_HOST'] + ':' + config['SALTAPI_PORT'])
 
+redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config['REDIS_PORT'], db=config['REDIS_DB'])
 
 
 '''
@@ -73,7 +75,7 @@ def hello_world(x=16, y=16):
     return json.dumps({'result':result, 'goto':goto})
 
 @celery.task
-def sync_from_influxdb():
+def sync_node_from_influxdb():
     try:
         data = sensuapi.get('clients')
         result =[]
@@ -81,7 +83,6 @@ def sync_from_influxdb():
         return {'failed' : e}
     for item in data:
         try:
-            #sensunode = Perf_Node.query.filter_by(sensu_node_name=item["name"]).first()
             sensunode = session.query(Perf_Node).filter_by(sensu_node_name=item["name"]).first()
         except Exception as e:
             return {'failed' : e}
@@ -108,9 +109,8 @@ def sync_from_influxdb():
         return {'failed' : e}
 
     return {'successed' : result}
-     
 
 
 @celery.task
-def sync_from_saltstack():
+def sync_node_from_saltstack():
     pass 

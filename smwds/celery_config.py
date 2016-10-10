@@ -14,7 +14,7 @@ CELERY_BACKEND = 'redis://localhost:6379/5'
 # Celery task to sync between CMDB and monitor DB
 CELERYBEAT_SCHEDULE = {
     'add-every-30-seconds': {
-        'task': 'celery_task.sync_from_influxdb',
+        'task': 'celery_task.sync_node_from_influxdb',
         'schedule': timedelta(seconds=30)
     },
 }
