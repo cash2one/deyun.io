@@ -56,8 +56,19 @@ class Perf_Node(db.Model):
                        unique=False)
     sensu_version = Column(db.String(255), nullable=False,
                        unique=False)
-    sensu_timestamp = Column(db.DateTime, nullable=False,
-                       unique=False, default=get_current_time)
+    sensu_timestamp = Column(db.Integer, nullable=False,
+                       unique=False, default=0)
+
+    @property
+    def serialize(self):
+       """Return object data in easily serializeable format"""
+       return {
+           'id'         : self.id,
+           'sensu_node_name': dump_datetime(self.modified_at),
+           # This is an example how to deal with Many2Many relations
+           'many2many'  : self.serialize_many2many
+       }
+
     @classmethod
     def get_count(cls):
         count_q = cls.query.statement.with_only_columns(

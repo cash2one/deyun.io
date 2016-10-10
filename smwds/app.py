@@ -41,7 +41,38 @@ def create_app(config=None, app_name=None):
     return app
 
 
+def create_celery_app(app=None):
 
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    app = create_app()
+    celery = Celery(app.__class__)
+    celery.config_from_object('celery_config')
+    #app.config.from_pyfile('prod.py', silent=True)
+    TaskBase = celery.Task
+
+    class ContextTask(TaskBase):
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+
+    celery.Task = ContextTask
+    #celery.conf.update(app.config)
+    app.app_context().push()
+
+    # an Engine, which the Session will use for connection
+    # resources
+    celery_task = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+
+    # create a configured "Session" class
+    Session = sessionmaker(bind=celery_task)
+    
+    # create a Session
+    session = Session()
+    return celery , session
 
 
 
@@ -52,7 +83,7 @@ def configure_app(app, config=None):
     app.config.from_object(DefaultConfig)
 
     # http://flask.pocoo.org/docs/config/#instance-folders
-    app.config.from_pyfile('production.cfg', silent=True)
+    app.config.from_pyfile('prod.py', silent=True)
 
     if config:
         app.config.from_object(config)
