@@ -52,8 +52,8 @@ class Masterdb(db.Model):
     minion_data = Column(JSONType(1000), nullable=False, default='')
 
     def ret_api(self):
-        return self.master_api_url + ":" + str(self.master_api_port)
-
+        #return self.master_api_url + ":" + str(self.master_api_port)
+        return self.master_api_url
     @classmethod
     def get_count(cls):
         count_q = cls.query.statement.with_only_columns(
@@ -143,7 +143,7 @@ class Nodedb(db.Model):
     mem  = Column(db.String(STRING_LEN), nullable=False, default='')
     host = Column(db.String(STRING_LEN), nullable=False, default='')
     status = Column(db.String(STRING_LEN), nullable=False, default='')
-    
+
     @classmethod
     def get_nodes(cls):
         q = cls.query.with_entities(cls.node_name).all()

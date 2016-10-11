@@ -4,7 +4,7 @@
 from celery import Celery, platforms
 from flask import Flask, current_app
 from extensions import db 
-import random, time, json, redis, time, logging
+import random, time, json, redis, time, logging, base64
 from app import create_celery_app
 from celery.signals import task_prerun
 from datetime import timedelta
@@ -19,6 +19,7 @@ try:
 except:
     pass
 from functools import wraps
+from utils import convert
 
 logger = logging.getLogger('task')
 
@@ -37,7 +38,15 @@ indbapi = Indb(config['INDB_HOST'] + ':' + config['INDB_PORT'])
 
 sensuapi = SensuAPI(config['SENSU_HOST'] + ':' + config['SENSU_PORT'])
 
-saltapi = Pepper(config['SALTAPI_HOST'])
+master = session.query(Masterdb).first()
+try:
+    saltapi = Pepper(master.ret_api())
+    user = master.username
+    pawd = convert(base64.b64decode(master.password))
+except:
+    saltapi = Pepper(config['SALTAPI_HOST'])
+    user = config['SALTAPI_USER']
+    pawd = config['SALTAPI_PASS']
 
 redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config['REDIS_PORT'], db=config['REDIS_DB'])
 
@@ -63,15 +72,16 @@ app, celery = make_celery(app)
 app.create_app().app_context().push()
 '''
 def salttoken(loginresult=None):
+    if redisapi.hexists(name='salt',key='token'):
+        if (time.time() - float(bytes.decode(redisapi.hget(name='salt', key='expire')))) < 0.0:
+            ret = redisapi.hget(name='salt',key='token')
+            return convert(ret)
+        else:
+            return salttoken(saltapi.login(user, pawd, 'pam'))
     if loginresult:
         for k in loginresult.keys():
             redisapi.hset(name='salt', key=k, value=loginresult[k])
-    else:
-        salttoken(saltapi.login(config['SALTAPI_USER'], config['SALTAPI_PASS'], 'pam'))
-    if (time.time() - float(bytes.decode(redisapi.hget(name='salt', key='expire')))) >= 0.0:
-        salttoken(saltapi.login(config['SALTAPI_USER'], config['SALTAPI_PASS'], 'pam'))
-    ret = redisapi.hget(name='salt', key='token')
-    return bytes.decode(ret)
+    return salttoken()
 
 def salt_command(f):
     @wraps(f)
@@ -99,6 +109,15 @@ def salt_minion_status():
     except Exception as e:
         return {'failed' : e}    
     return {'ok':str(result) + ' updated'}
+
+@celery.task
+@salt_command
+def salt_api_status():
+    try:
+        ret = saltapi.req_get(path='stats')
+    except Exception as e :
+        return {'failed' : e}
+    return ret
 
 
 
