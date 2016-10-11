@@ -142,6 +142,12 @@ class Nodedb(db.Model):
     cpu = Column(db.String(STRING_LEN), nullable=False, default='')
     mem  = Column(db.String(STRING_LEN), nullable=False, default='')
     host = Column(db.String(STRING_LEN), nullable=False, default='')
+    status = Column(db.String(STRING_LEN), nullable=False, default='')
+    
+    @classmethod
+    def get_nodes(cls):
+        q = cls.query.with_entities(cls.node_name).all()
+        return q
 
     @classmethod
     def get_count(cls):

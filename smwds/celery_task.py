@@ -4,7 +4,7 @@
 from celery import Celery, platforms
 from flask import Flask, current_app
 from extensions import db 
-import random, time, json, redis
+import random, time, json, redis, time, logging
 from app import create_celery_app
 from celery.signals import task_prerun
 from datetime import timedelta
@@ -13,11 +13,13 @@ from weblib.libpepper import Pepper
 from weblib.indbapi import Indb
 from weblib.sensuapi import SensuAPI
 from node import Perf, Perf_Node, Perf_Cpu, Perf_Mem, Perf_TCP, Perf_Disk, Perf_System_Load, Perf_Socket, Perf_Process_Count, Perf_Netif, Perf_Ping
+from api import Masterdb, Nodedb, Location
 try:
     from prod import config
 except:
     pass
 
+logger = logging.getLogger('task')
 
 #celery_app = Flask(__name__)
 

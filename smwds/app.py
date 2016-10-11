@@ -217,7 +217,19 @@ def configure_logging(app):
         '%(asctime)s %(levelname)s: %(message)s '
         '[in %(pathname)s:%(lineno)d]')
     )
-    api_logger.addHandler(sql_log_handler)
+    api_logger.addHandler(api_log_handler)
+
+    #task log
+    task_logger = getLogger(name='task')
+    task_log = os.path.join(app.config['LOG_FOLDER'], 'task.log')
+    task_log_handler = logging.handlers.RotatingFileHandler(
+        task_log, maxBytes=100000, backupCount=10)
+    task_log_handler.setLevel(logging.INFO)
+    task_log_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s '
+        '[in %(pathname)s:%(lineno)d]')
+    )
+    task_logger.addHandler(task_log_handler)
 
     # Testing
     #app.logger.info("testing info.")
