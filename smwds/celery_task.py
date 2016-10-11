@@ -18,6 +18,7 @@ try:
     from prod import config
 except:
     pass
+from functools import wraps
 
 logger = logging.getLogger('task')
 
@@ -36,7 +37,7 @@ indbapi = Indb(config['INDB_HOST'] + ':' + config['INDB_PORT'])
 
 sensuapi = SensuAPI(config['SENSU_HOST'] + ':' + config['SENSU_PORT'])
 
-saltapi = Pepper(config['SALTAPI_HOST'] + ':' + config['SALTAPI_PORT'])
+saltapi = Pepper(config['SALTAPI_HOST'])
 
 redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config['REDIS_PORT'], db=config['REDIS_DB'])
 
@@ -61,10 +62,45 @@ def make_celery(app):
 app, celery = make_celery(app)
 app.create_app().app_context().push()
 '''
+def salttoken(loginresult=None):
+    if loginresult:
+        for k in loginresult.keys():
+            redisapi.hset(name='salt', key=k, value=loginresult[k])
+    else:
+        salttoken(saltapi.login(config['SALTAPI_USER'], config['SALTAPI_PASS'], 'pam'))
+    if (time.time() - float(bytes.decode(redisapi.hget(name='salt', key='expire')))) >= 0.0:
+        salttoken(saltapi.login(config['SALTAPI_USER'], config['SALTAPI_PASS'], 'pam'))
+    ret = redisapi.hget(name='salt', key='token')
+    return bytes.decode(ret)
 
-@celery.task(name="tasks.add")
-def add(x, y):
-    return x + y
+def salt_command(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        try:
+            saltkey = salttoken()
+            saltapi.auth['token'] = saltkey
+            return f(*args, **kwds)
+        except Exception as e:
+            return {'failed': e}
+    return wrapper
+
+@celery.task
+@salt_command
+def salt_minion_status():
+    try:
+        ret = saltapi.runner('manage.status')
+        result = 0
+        if len(ret['return'][0]['up']) > 0:
+            for node in ret['return'][0]['up']:
+               result += redisapi.hset(name='status',key = node, value = 'up')
+        if len(ret['return'][0]['down']) > 0:
+            for node in ret['return'][0]['down']:
+               result += redisapi.hset(name='status',key = node, value = 'down')   
+    except Exception as e:
+        return {'failed' : e}    
+    return {'ok':str(result) + ' updated'}
+
+
 
 @celery.task
 def hello_world(x=16, y=16):
