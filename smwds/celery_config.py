@@ -14,7 +14,7 @@ CELERY_BACKEND = 'redis://localhost:6379/5'
 # Celery task to sync between CMDB and monitor DB
 CELERYBEAT_SCHEDULE = {
     'add-every-30-seconds': {
-        'task': 'celery_task.salt_minion_status',
+        'task': 'celery_task.salt_api_status',
         'schedule': timedelta(seconds=30)
     },
 }
