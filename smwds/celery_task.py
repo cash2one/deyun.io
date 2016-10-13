@@ -14,6 +14,7 @@ from weblib.indbapi import Indb
 from weblib.sensuapi import SensuAPI
 from node import Perf, Perf_Node, Perf_Cpu, Perf_Mem, Perf_TCP, Perf_Disk, Perf_System_Load, Perf_Socket, Perf_Process_Count, Perf_Netif, Perf_Ping
 from api import Masterdb, Nodedb, Location
+from collections import defaultdict
 try:
     from prod import config
 except:
@@ -170,6 +171,59 @@ def sync_node_from_influxdb():
 
     return {'successed' : result}
 
+
+def sync_praser_data(data):
+    result = defaultdict(list)
+    for row in data:
+        for item in row:
+            result[item['tags']['host']].append(item['values'][0][1])
+    return result
+
+def sync_cpu_from_influxdb():
+    praser = []
+    result = []
+    praser.append(indbapi.get_sync_data('cpu_user'))
+    praser.append(indbapi.get_sync_data('cpu_nice'))
+    praser.append(indbapi.get_sync_data('cpu_system'))
+    praser.append(indbapi.get_sync_data('cpu_idle'))
+    praser.append(indbapi.get_sync_data('cpu_iowait'))
+    praser.append(indbapi.get_sync_data('cpu_irq'))
+    praser.append(indbapi.get_sync_data('cpu_softirq'))
+    praser.append(indbapi.get_sync_data('cpu_steal'))
+    praser.append(indbapi.get_sync_data('cpu_guest'))
+    #return sync_praser_data(praser)
+    try:
+        data = sync_praser_data(praser)
+    except Exception as e:
+        logger.error('error while prasering data from influx db: ' + praser)
+    try:
+        for (k,v) in data.items():
+            target_node = Perf_Cpu(
+            node_name=k,
+            cpu_user=v[0],
+            cpu_nice=v[1],
+            cpu_system=v[2],
+            cpu_idle=v[3],
+            cpu_iowait=v[4],
+            cpu_irq=v[5],
+            cpu_softirq=v[6],
+            cpu_steal=v[7],
+            cpu_guest=v[8],  
+                )
+            result.append(target_node)
+    except Exception as e:
+        logger.warning('error in creating data ' + str(item) + ' in ' + str(data))
+        return {'failed': e}
+    try:
+        session.add(target_node)
+        session.commit()
+    except Exception as e:
+        logger.warning('error in writing data ' + str(data))
+        return {'failed': e}
+    logger.info('Completed in writing data to Pref_Cpu')
+    return {'successed': result}
+
+
 @celery.task
 def salt_mark_status(k,v):
     target_node = session.query(
@@ -244,6 +298,3 @@ def salt_nodes_sync():
     return {'ok': str(result) + ' updated with redis return: ' + str(count)}
 
 
-@celery.task
-def sync_node_from_saltstack():
-    pass 
