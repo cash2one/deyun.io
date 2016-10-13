@@ -99,16 +99,19 @@ def salt_command(f):
 def salt_minion_status():
     try:
         ret = saltapi.runner('manage.status')
-        result = 0
+        result = []
+        count = 0
         if len(ret['return'][0]['up']) > 0:
             for node in ret['return'][0]['up']:
-               result += redisapi.hset(name='status',key = node, value = 'up')
+                count += redisapi.hset(name='status', key=node, value='up')
+                result.append(node)
         if len(ret['return'][0]['down']) > 0:
             for node in ret['return'][0]['down']:
-               result += redisapi.hset(name='status',key = node, value = 'down')   
+                count += redisapi.hset(name='status', key=node, value='down')
+                result.append(node)
     except Exception as e:
-        return {'failed' : e}    
-    return {'ok':str(result) + ' updated'}
+        return {'failed': e}
+    return {'ok': str(result) + ' updated with redis return: ' + str(count)}
 
 @celery.task
 @salt_command
@@ -166,6 +169,79 @@ def sync_node_from_influxdb():
         return {'failed' : e}
 
     return {'successed' : result}
+
+@celery.task
+def salt_mark_status(k,v):
+    target_node = session.query(
+                Nodedb).filter_by(node_name=k).first()
+    if target_node:
+        target_node.status = v
+    else:
+        target_node =  Nodedb(
+                id=uuid.uuid4(),
+                node_name=k,
+                node_ip=u'1.1.1.1',
+                bio=u'Down',
+                master=master,
+                status=v
+                )
+    session.add(target_node)
+    session.commit()
+
+@celery.task
+@salt_command
+def salt_nodes_sync():
+    result = []
+    count = 0
+    data = redisapi.hgetall(name='status')
+    try:
+        for (k, v) in convert(data).items():
+            if v == 'down':
+                salt_mark_status(k, v)
+                continue
+            target_node = session.query(
+                Nodedb).filter_by(node_name=k).first()
+            node_data = salt_minion(k)
+            db_data = node_data['return'][0][k]
+            try:
+                if target_node:
+                    target_node.minion_data = db_data
+                    target_node.node_ip=db_data.get('ipv4','1.1.1.1'),
+                    target_node.os = db_data.get('lsb_distrib_description') or (
+                        db_data.get('lsb_distrib_id') + db_data.get('lsb_distrib_release')) or (db_data.get('osfullname') + db_data('osrelease'))
+                    target_node.cpu = str(db_data[
+                        'num_cpus']) + ' * ' + str(db_data['cpu_model'])
+                    target_node.kenel = db_data['kernelrelease']
+                    target_node.mem = db_data['mem_total']
+                    target_node.host = db_data['host']
+                    target_node.status = v
+                    target_node.master = master
+                else:
+                    target_node = Nodedb(
+                        id=uuid.uuid4(),
+                        node_name=db_data['id'],
+                        node_ip=db_data.get('ipv4','1.1.1.1'),
+                        minion_data=db_data,
+                        os=db_data.get('lsb_distrib_description') or (
+                        db_data.get('lsb_distrib_id') + db_data.get('lsb_distrib_release')) or (db_data.get('osfullname') + db_data('osrelease')),
+                        cpu=str(db_data['num_cpus']) + ' * ' +
+                        str(db_data['cpu_model']),
+                        kenel=db_data['kernelrelease'],
+                        mem=db_data['mem_total'],
+                        host=db_data['host'],
+                        master=master,
+                        status=v
+                    )
+            except KeyError as e:
+                logger.warn('updating ' + k + ' with error:' + str(e.args))
+                continue
+            result.append(target_node)
+            session.add(target_node)
+    except Exception as e:
+        logger.warn('Error while updaing ' + db_data['id'] + str(e.args))
+    session.commit()
+
+    return {'ok': str(result) + ' updated with redis return: ' + str(count)}
 
 
 @celery.task

@@ -124,9 +124,9 @@ class Nodedb(db.Model):
     username = Column(db.String(STRING_LEN),  nullable=False, default='salt')
     password = Column(db.String(STRING_LEN),  nullable=False, default='sugar')
     #location = Column(db.String(STRING_LEN), nullable=False, default="")
-    location_id = Column(UUIDType(binary=False), db.ForeignKey(
-        'location.id'), nullable=False, default="", info={'verbose_name': u'提供商', })
-    location = db.relationship('Location', backref='nodes')
+    #location_id = Column(UUIDType(binary=False), db.ForeignKey(
+    #    'location.id'), nullable=False, default="", info={'verbose_name': u'提供商', })
+    #location = db.relationship('Location', backref='nodes')
     bio = Column(db.Text, default="", info={'verbose_name': u'备注', })
     ssh_key = Column(db.String(STRING_LEN))
     create_at = Column(db.DateTime, nullable=False, default=get_current_time, info={
