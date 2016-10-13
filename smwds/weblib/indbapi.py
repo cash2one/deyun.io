@@ -3,6 +3,7 @@ import logging
 import os
 import datetime
 logger = logging.getLogger('api')
+logger.setLevel(20)
 
 class IndbException(Exception):
     pass
@@ -77,7 +78,38 @@ class Indb(object):
         except IndbException as e:
             logger.error('Error with request: {0}'.format(e))
             return
-        return resp.json()
+        data =  resp.json()
+        return data['results'][0]['series'][0]['values']
+
+    def get_sync_data(self, table,time='55m', interval='1h'):
+        #url = self.api_url + '/query?q=SELECT+MEAN(value)+FROM+' + table + '++WHERE+time+%3E+now()+-+' + time +'+and+host+%3D\'' + host + '\'+GROUP+BY+host%2Ctime(' + interval + ')+limit+1&db=graphite'
+        url = self.api_url + '/query?q=SELECT+MEAN(value)+FROM+' + table + '++WHERE+time+%3E+now()+-+' + time + '++GROUP+BY+host%2Ctime(' + interval + ')+limit+1&db=graphite' 
+        #http://123.56.195.220:8086/query?q=SELECT+MEAN(value)+FROM+cpu_system++WHERE+time+%3E+now()+-+12h+GROUP+BY+host%2Ctime(1h)&db=graphite
+        #http://123.56.195.220:8086/query?q=SELECT+MEAN(value)+FROM+cpu_system++WHERE+time+%3E+now()++-+55m+and+host+%3D+'do.docker.us01'++GROUP+BY+time(60m)+limit+1&db=graphite
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        params = {'url': url,
+          'headers': headers,
+          'verify': False,
+          }
+        try:
+            resp = requests.get(**params)
+        except Exception as e:
+            logger.error('Error with request ' + url + ': {0}'.format(e))
+            return e
+        data = resp.json()
+        try:
+            logger.info({'ok':data})
+            return data['results'][0]['series']
+        except Exception as e:
+            logger.error('Error with request ' + url + 'data:' + str(data) + ': {0}'.format(e))
+            return None
+
+        
+
 
     def get_data(self, table, db, host):
 
@@ -197,3 +229,5 @@ class Indb(object):
             list_lable.append(item[1])
         result = [list_lable,list_date]
         return result
+
+

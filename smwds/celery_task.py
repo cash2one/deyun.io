@@ -233,12 +233,12 @@ def salt_nodes_sync():
                         status=v
                     )
             except KeyError as e:
-                logger.warn('updating ' + k + ' with error:' + str(e.args))
+                logger.warning('updating ' + k + ' with error:' + str(e.args))
                 continue
             result.append(target_node)
             session.add(target_node)
     except Exception as e:
-        logger.warn('Error while updaing ' + db_data['id'] + str(e.args))
+        logger.warning('Error while updaing ' + db_data['id'] + str(e.args))
     session.commit()
 
     return {'ok': str(result) + ' updated with redis return: ' + str(count)}

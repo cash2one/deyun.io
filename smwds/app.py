@@ -182,7 +182,7 @@ def configure_logging(app):
 
     # Set info level on logger, which might be overwritten by handers.
     # Suppress DEBUG messages.
-    app.logger.setLevel(logging.INFO)
+    app.logger.setLevel(logging.NOTSET)
 
     #info_log
     info_log = os.path.join(app.config['LOG_FOLDER'], 'info.log')
@@ -212,7 +212,7 @@ def configure_logging(app):
     api_log = os.path.join(app.config['LOG_FOLDER'], 'api.log')
     api_log_handler = logging.handlers.RotatingFileHandler(
         api_log, maxBytes=100000, backupCount=10)
-    api_log_handler.setLevel(logging.INFO)
+    #api_log_handler.setLevel()
     api_log_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s '
         '[in %(pathname)s:%(lineno)d]')
