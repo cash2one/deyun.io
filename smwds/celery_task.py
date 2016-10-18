@@ -3,7 +3,6 @@
 
 from celery import Celery, platforms
 from flask import Flask, current_app
-from extensions import db 
 import random, time, json, redis, time, logging, base64
 from app import create_celery_app
 from celery.signals import task_prerun
@@ -173,7 +172,7 @@ def sync_node_from_influxdb():
 
     return {'successed' : result}
 
-
+@celery.task
 def sync_praser_data(data):
     result = defaultdict(list)
     for row in data:
@@ -181,6 +180,7 @@ def sync_praser_data(data):
             result[item['tags']['host']].append(item['values'][0][1])
     return result
 
+@celery.task
 def sync_cpu_from_influxdb():
     praser = []
     result = []
@@ -197,7 +197,7 @@ def sync_cpu_from_influxdb():
     try:
         data = sync_praser_data(praser)
     except Exception as e:
-        logger.error('error while prasering data from influx db: ' + praser)
+        logger.error('error while prasering data from influx db: ' + str(praser))
     try:
         for (k,v) in data.items():
             target_node = Perf_Cpu(
@@ -213,18 +213,324 @@ def sync_cpu_from_influxdb():
             cpu_guest=v[8],  
                 )
             result.append(target_node)
+            session.add(target_node)
     except Exception as e:
-        logger.warning('error in creating data ' + str(item) + ' in ' + str(data))
+        logger.warning('error in creating data ' + str((k,v)) + ' in ' + str(data))
         return {'failed': e}
     try:
-        session.add(target_node)
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
         return {'failed': e}
-    logger.info('Completed in writing data to Pref_Cpu')
+    logger.info('Completed in writing data to Pref_Cpu'+ str(data))
     return {'successed': result}
 
+@celery.task
+def sync_mem_from_influxdb():
+    praser = []
+    result = []
+    praser.append(indbapi.get_sync_data('memory_percent_usedWOBuffersCaches'))
+    praser.append(indbapi.get_sync_data('memory_percent_freeWOBuffersCaches'))
+    praser.append(indbapi.get_sync_data('memory_percent_swapUsed'))
+    praser.append(indbapi.get_sync_data('memory_percent_free'))
+    #return sync_praser_data(praser)
+    try:
+        data = sync_praser_data(praser)
+    except Exception as e:
+        logger.error('error while prasering data from influx db: ' + str(praser))
+    try:
+        for (k,v) in data.items():
+            target_node = Perf_Mem(
+            node_name=k,
+            mem_usedWOBuffersCaches=v[0],
+            mem_freeWOBuffersCaches=v[1],
+            mem_swapUsed=v[2] 
+                )
+            result.append(target_node)
+            session.add(target_node)
+    except Exception as e:
+        logger.warning('error in creating data ' + str((k,v)) + ' in ' + str(data))
+        return {'failed': e}
+    try:
+        session.commit()
+    except Exception as e:
+        logger.warning('error in writing data ' + str(data))
+        return {'failed': e}
+    logger.info('Completed in writing data to Pref_Mem'+ str(data))
+    return {'successed': result}
+
+@celery.task
+def sync_tcp_from_influxdb():
+    praser = []
+    result = []
+    praser.append(indbapi.get_sync_data('tcp_UNKNOWN'))
+    praser.append(indbapi.get_sync_data('tcp_ESTABLISHED'))
+    praser.append(indbapi.get_sync_data('tcp_SYN_SENT'))
+    praser.append(indbapi.get_sync_data('tcp_SYN_RECV'))
+    praser.append(indbapi.get_sync_data('tcp_FIN_WAIT1'))
+    praser.append(indbapi.get_sync_data('tcp_FIN_WAIT2'))
+    praser.append(indbapi.get_sync_data('tcp_CLOSE'))
+    praser.append(indbapi.get_sync_data('tcp_CLOSE_WAIT'))
+    praser.append(indbapi.get_sync_data('tcp_LAST_ACK'))
+    praser.append(indbapi.get_sync_data('tcp_LISTEN'))
+    praser.append(indbapi.get_sync_data('tcp_CLOSING'))
+    #return sync_praser_data(praser)
+    try:
+        data = sync_praser_data(praser)
+    except Exception as e:
+        logger.error('error while prasering data from influx db: ' + str(praser))
+    try:
+        for (k,v) in data.items():
+            target_node = Perf_TCP(
+            node_name=k,
+            tcp_UNKNOWN=v[0],
+            tcp_ESTABLISHED=v[1],
+            tcp_SYN_SENT=v[2],
+            tcp_SYN_RECV=v[3],
+            tcp_FIN_WAIT1=v[4],
+            tcp_FIN_WAIT2=v[5],
+            tcp_CLOSE=v[6],
+            tcp_CLOSE_WAIT=v[7],
+            tcp_LAST_ACK=v[8],
+            tcp_LISTEN=v[9],
+            tcp_CLOSING=v[10],   
+                )
+            result.append(target_node)
+            session.add(target_node)
+    except Exception as e:
+        logger.warning('error in creating data ' + str((k,v)) + ' in ' + str(data))
+        return {'failed': e}
+    try:
+        session.commit()
+    except Exception as e:
+        logger.warning('error in writing data ' + str(data))
+        return {'failed': e}
+    logger.info('Completed in writing data to Pref_Tcp'+ str(data))
+    return {'successed': result}
+
+@celery.task
+def sync_disk_from_influxdb():
+    praser = []
+    result = []
+    praser.append(indbapi.get_sync_data('disk_usage_root_used'))
+    praser.append(indbapi.get_sync_data('disk_usage_root_avail'))
+    praser.append(indbapi.get_sync_data('disk_usage_root_used_percentage'))
+    #return sync_praser_data(praser)
+    try:
+        data = sync_praser_data(praser)
+    except Exception as e:
+        logger.error('error while prasering data from influx db: ' + str(praser))
+    try:
+        for (k,v) in data.items():
+            target_node = Perf_Disk(
+            node_name=k,
+            disk_usage_root_used=v[0],
+            disk_usage_root_avail=v[1],
+            disk_usage_root_used_percentage=v[2] 
+                )
+            result.append(target_node)
+            session.add(target_node)
+    except Exception as e:
+        logger.warning('error in creating data ' + str((k,v)) + ' in ' + str(data))
+        return {'failed': e}
+    try:
+        session.commit()
+    except Exception as e:
+        logger.warning('error in writing data ' + str(data))
+        return {'failed': e}
+    logger.info('Completed in writing data to Pref_Disk'+ str(data))
+    return {'successed': result}
+
+@celery.task
+def sync_load_from_influxdb():
+    praser = []
+    result = []
+    praser.append(indbapi.get_sync_data('load_load_avg_one'))
+    praser.append(indbapi.get_sync_data('load_load_avg_five'))
+    praser.append(indbapi.get_sync_data('load_load_avg_fifteen'))
+    #return sync_praser_data(praser)
+    try:
+        data = sync_praser_data(praser)
+    except Exception as e:
+        logger.error('error while prasering data from influx db: ' + str(praser))
+    try:
+        for (k,v) in data.items():
+            target_node = Perf_System_Load(
+            node_name=k,
+            load_avg_one=v[0],
+            load_avg_five=v[1],
+            load_avg_fifteen=v[2] 
+                )
+            result.append(target_node)
+            session.add(target_node)
+    except Exception as e:
+        logger.warning('error in creating data ' + str((k,v)) + ' in ' + str(data))
+        return {'failed': e}
+    try:
+        session.commit()
+    except Exception as e:
+        logger.warning('error in writing data ' + str(data))
+        return {'failed': e}
+    logger.info('Completed in writing data to Pref_Load'+ str(data))
+    return {'successed': result}
+
+@celery.task
+def sync_socket_from_influxdb():
+    praser = []
+    result = []
+    praser.append(indbapi.get_sync_data('sockets_total_used'))
+    praser.append(indbapi.get_sync_data('sockets_TCP_inuse'))
+    praser.append(indbapi.get_sync_data('sockets_TCP_orphan'))
+    praser.append(indbapi.get_sync_data('sockets_TCP_tw'))
+    praser.append(indbapi.get_sync_data('sockets_TCP_alloc'))
+    praser.append(indbapi.get_sync_data('sockets_TCP_mem'))
+    praser.append(indbapi.get_sync_data('sockets_UDP_inuse'))
+    praser.append(indbapi.get_sync_data('sockets_UDP_mem'))
+    praser.append(indbapi.get_sync_data('sockets_UDPLITE_inuse'))
+    praser.append(indbapi.get_sync_data('sockets_RAW_inuse'))
+    praser.append(indbapi.get_sync_data('sockets_RAW_inuse'))
+    praser.append(indbapi.get_sync_data('sockets_FRAG_memory'))
+    # return sync_praser_data(praser)
+    try:
+        data = sync_praser_data(praser)
+    except Exception as e:
+        logger.error('error while prasering data from influx db: ' + str(praser))
+    try:
+        for (k, v) in data.items():
+            target_node = Perf_Socket(
+                node_name=k,
+                sockets_total_used=v[0],
+                sockets_TCP_inuse=v[1],
+                sockets_TCP_orphan=v[2],
+                sockets_TCP_tw=v[3],
+                sockets_TCP_alloc=v[4],
+                sockets_TCP_mem=v[5],
+                sockets_UDP_inuse=v[6],
+                sockets_UDP_mem=v[7],
+                sockets_UDPLITE_inuse=v[8],
+                sockets_RAW_inuse=v[9],
+                sockets_FRAG_inuse=v[10],
+                sockets_FRAG_memory=v[10],
+            )
+            result.append(target_node)
+            session.add(target_node)
+    except Exception as e:
+        logger.warning('error in creating data ' +
+                       str((k, v)) + ' in ' + str(data))
+        return {'failed': e}
+    try:
+        session.commit()
+    except Exception as e:
+        logger.warning('error in writing data ' + str(data))
+        return {'failed': e}
+    logger.info('Completed in writing data to Pref_Socket'+ str(data))
+    return {'successed': result}
+
+@celery.task
+def sync_process_from_influxdb():
+    praser = []
+    result = []
+    praser.append(indbapi.get_sync_data('process_count'))
+    # return sync_praser_data(praser)
+    try:
+        data = sync_praser_data(praser)
+    except Exception as e:
+        logger.error('error while prasering data from influx db: ' + str(praser))
+    try:
+        for (k, v) in data.items():
+            target_node = Perf_Process_Count(
+                node_name=k,
+                process_count=v[0]
+            )
+            result.append(target_node)
+            session.add(target_node)
+    except Exception as e:
+        logger.warning('error in creating data ' +
+                       str((k, v)) + ' in ' + str(data))
+        return {'failed': e}
+    try:
+        session.commit()
+    except Exception as e:
+        logger.warning('error in writing data ' + str(data))
+        return {'failed': e}
+    logger.info('Completed in writing data to Process_count'+ str(data))
+    return {'successed': result}
+
+@celery.task
+def sync_netif_from_influxdb(netif='eth0'):
+    praser = []
+    result = []
+    praser.append(indbapi.get_sync_data('net_'+ netif +'_tx_bytes'))
+    praser.append(indbapi.get_sync_data('net_' + netif +'_rx_bytes'))
+    praser.append(indbapi.get_sync_data('net_' + netif +'_tx_packets'))
+    praser.append(indbapi.get_sync_data('net_' + netif +'_rx_packets'))
+    praser.append(indbapi.get_sync_data('net_' + netif +'_tx_errors'))
+    praser.append(indbapi.get_sync_data('net_' + netif +'_if_speed'))
+    try:
+        data = sync_praser_data(praser)
+        #return sync_praser_data(praser)
+    except Exception as e:
+        logger.error('error while prasering data from influx db: ' + str(praser))
+        return
+    try:
+        for (k, v) in data.items():
+            target_node = Perf_Netif(
+                node_name=k,
+                netif=netif,
+                netif_tx_bytes=v[0],
+                netif_rx_bytes=v[1],
+                netif_tx_packets=v[2],
+                netif_rx_packets=v[3],
+                netif_rx_errors=v[4],
+                netif_speed=v[5]
+            )
+            result.append(target_node)
+            session.add(target_node)
+    except Exception as e:
+        logger.warning('error in creating data ' +
+                       str((k, v)) + ' in ' + str(data))
+        return {'failed': e}
+    try:
+        session.commit()
+    except Exception as e:
+        logger.warning('error in writing data ' + str(data))
+        return {'failed': e}
+    logger.info('Completed in writing data to Pref_netif')
+    return {'successed': result}
+
+@celery.task
+def sync_ping_from_influxdb(node='master'):
+    praser = []
+    result = []
+    praser.append(indbapi.get_sync_data('ping_'+ node +'_packet_loss'))
+    praser.append(indbapi.get_sync_data('ping_'+ node +'_avg'))
+    try:
+        data = sync_praser_data(praser)
+        #return sync_praser_data(praser)
+    except Exception as e:
+        logger.error('error while prasering data from influx db: ' + str(praser))
+        return
+    try:
+        for (k, v) in data.items():
+            target_node = Perf_Ping(
+                node_name=k,
+                ping_target=node,
+                ping_packet_loss=v[0],
+                ping_avg=v[1]
+            )
+            result.append(target_node)
+            session.add(target_node)
+    except Exception as e:
+        logger.warning('error in creating data ' +
+                       str((k, v)) + ' in ' + str(data))
+        return {'failed': e}
+    try:
+        session.commit()
+    except Exception as e:
+        logger.warning('error in writing data ' + str(data))
+        return {'failed': e}
+    logger.info('Completed in writing data to Pref_ping' + str(result))
+    return {'successed': result}
 
 @celery.task
 def salt_mark_status(k,v):
@@ -243,6 +549,8 @@ def salt_mark_status(k,v):
                 )
     session.add(target_node)
     session.commit()
+
+
 
 @celery.task
 @salt_command
