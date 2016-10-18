@@ -35,6 +35,8 @@ logger = logging.getLogger('task')
 
 celery, session = create_celery_app()
 
+celery.config_from_object('prod', silent=True)
+
 indbapi = Indb(config['INDB_HOST'] + ':' + config['INDB_PORT'])
 
 sensuapi = SensuAPI(config['SENSU_HOST'] + ':' + config['SENSU_PORT'])
