@@ -23,18 +23,10 @@ from utils import convert
 
 logger = logging.getLogger('task')
 
-#celery_app = Flask(__name__)
-
-#celery_app.config.from_pyfile('prod.py', silent=True)
-
-#indbapi = Indb(app.config['INDB_HOST'] + ':' + app.config['INDB_PORT'])
-
-#sensuapi = SensuAPI(app.config['SENSU_HOST'] + ':' + app.config['SENSU_PORT'])
-
-
 celery, session = create_celery_app()
 
 #celery.config_from_object('prod', silent=True)
+#load config from celery_config.py , store other api information in prod.py
 celery.config_from_object('celery_config')
 
 indbapi = Indb(config['INDB_HOST'] + ':' + config['INDB_PORT'])
@@ -55,24 +47,35 @@ redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config['REDIS_PORT'
 
 
 '''
-def make_celery(app):
-    celery = Celery(celery_app.__class__)
-    platforms.C_FORCE_ROOT = True
-    # load setting.py config
-    celery.config_from_object('celery_config')
+### DOC ###
 
-    #celery.conf.update(app.config)
-    TaskBase = celery.Task
-    class ContextTask(TaskBase):
-        abstract = True
-        def __call__(self, *args, **kwargs):
-            with celery_app.app_context():
-                return TaskBase.__call__(self, *args, **kwargs)
-    celery.Task = ContextTask
-    return (app,celery)
+Celery function description
 
-app, celery = make_celery(app)
-app.create_app().app_context().push()
+*self test*
+
+
+### END ###
+'''
+
+@celery.task
+def self_test(x=16, y=16):
+    x = int(x)
+    y = int(y)
+    res = add.apply_async((x, y))
+    context = {"id": res.task_id, "x": x, "y": y}
+    result = "add((x){}, (y){})".format(context['x'], context['y'])
+    goto = "{}".format(context['id'])
+    return json.dumps({'result':result, 'goto':goto})
+
+'''
+### DOC ###
+
+Celery function description
+
+*to obtain token from saltstack api, based on pepper*
+
+
+### END ###
 '''
 def salttoken(loginresult=None):
     if redisapi.hexists(name='salt',key='token'):
@@ -86,6 +89,17 @@ def salttoken(loginresult=None):
             redisapi.hset(name='salt', key=k, value=loginresult[k])
     return salttoken()
 
+'''
+### DOC ###
+
+Celery function description
+
+*salt api wraper for saltstack api, token stored in redis cache and tries to reflash when expired*
+
+
+### END ###
+'''
+
 def salt_command(f):
     @wraps(f)
     def wrapper(*args, **kwds):
@@ -97,6 +111,16 @@ def salt_command(f):
             return {'failed': e}
     return wrapper
 
+'''
+### DOC ###
+
+Celery function description
+
+*Get minion status from saltstack api and store in redis cache*
+
+
+### END ###
+'''
 @celery.task
 @salt_command
 def salt_minion_status():
@@ -116,6 +140,17 @@ def salt_minion_status():
         return {'failed': e}
     return {'ok': str(result) + ' updated with redis return: ' + str(count)}
 
+
+'''
+### DOC ###
+
+Celery function description
+
+*check saltstack api status*
+
+
+### END ###
+'''
 @celery.task
 @salt_command
 def salt_api_status():
@@ -126,17 +161,117 @@ def salt_api_status():
     return ret
 
 
+'''
+### DOC ###
+
+Celery function description
+
+*update status subtask when syncing*
+
+
+### END ###
+'''
+
 
 @celery.task
-def hello_world(x=16, y=16):
-    x = int(x)
-    y = int(y)
-    res = add.apply_async((x, y))
-    context = {"id": res.task_id, "x": x, "y": y}
-    result = "add((x){}, (y){})".format(context['x'], context['y'])
-    goto = "{}".format(context['id'])
-    return json.dumps({'result':result, 'goto':goto})
+def salt_mark_status(k,v):
+    target_node = session.query(
+                Nodedb).filter_by(node_name=k).first()
+    if target_node:
+        target_node.status = v
+    else:
+        target_node =  Nodedb(
+                id=uuid.uuid4(),
+                node_name=k,
+                node_ip=u'1.1.1.1',
+                bio=u'Down',
+                master=master,
+                status=v
+                )
+    session.add(target_node)
+    session.commit()
 
+'''
+### DOC ###
+
+Celery function description
+
+*search the cmdb first the tries to update information when available*
+this task based on the result of salt_minion_status, may return none
+
+
+### END ###
+'''
+
+@celery.task
+@salt_command
+def salt_nodes_sync():
+    result = []
+    count = 0
+    data = redisapi.hgetall(name='status')
+    if not data:
+        return {'failed': 'no status data in redis cache '}
+    try:
+        for (k, v) in convert(data).items():
+            if v == 'down':
+                salt_mark_status(k, v)
+                continue
+            target_node = session.query(
+                Nodedb).filter_by(node_name=k).first()
+            node_data = salt_minion(k)
+            db_data = node_data['return'][0][k]
+            try:
+                if target_node:
+                    target_node.minion_data = db_data
+                    target_node.node_ip=db_data.get('ipv4','1.1.1.1'),
+                    target_node.os = db_data.get('lsb_distrib_description') or (
+                        db_data.get('lsb_distrib_id') + db_data.get('lsb_distrib_release')) or (db_data.get('osfullname') + db_data('osrelease'))
+                    target_node.cpu = str(db_data[
+                        'num_cpus']) + ' * ' + str(db_data['cpu_model'])
+                    target_node.kenel = db_data['kernelrelease']
+                    target_node.mem = db_data['mem_total']
+                    target_node.host = db_data['host']
+                    target_node.status = v
+                    target_node.master = master
+                else:
+                    target_node = Nodedb(
+                        id=uuid.uuid4(),
+                        node_name=db_data['id'],
+                        node_ip=db_data.get('ipv4','1.1.1.1'),
+                        minion_data=db_data,
+                        os=db_data.get('lsb_distrib_description') or (
+                        db_data.get('lsb_distrib_id') + db_data.get('lsb_distrib_release')) or (db_data.get('osfullname') + db_data('osrelease')),
+                        cpu=str(db_data['num_cpus']) + ' * ' +
+                        str(db_data['cpu_model']),
+                        kenel=db_data['kernelrelease'],
+                        mem=db_data['mem_total'],
+                        host=db_data['host'],
+                        master=master,
+                        status=v
+                    )
+            except KeyError as e:
+                logger.warning('updating ' + k + ' with error:' + str(e.args))
+                continue
+            result.append(target_node)
+            session.add(target_node)
+    except Exception as e:
+        logger.warning('Error while updaing ' + db_data['id'] + str(e.args))
+    session.commit()
+
+    return {'ok': str(result) + ' updated with redis return: ' + str(count)}
+
+
+
+'''
+### DOC ###
+
+Celery function description
+
+*influx syncing tasks*
+
+
+### END ###
+'''
 @celery.task
 def sync_node_from_influxdb():
     try:
@@ -532,80 +667,5 @@ def sync_ping_from_influxdb(node='master'):
         return {'failed': e}
     logger.info('Completed in writing data to Pref_ping' + str(result))
     return {'successed': result}
-
-@celery.task
-def salt_mark_status(k,v):
-    target_node = session.query(
-                Nodedb).filter_by(node_name=k).first()
-    if target_node:
-        target_node.status = v
-    else:
-        target_node =  Nodedb(
-                id=uuid.uuid4(),
-                node_name=k,
-                node_ip=u'1.1.1.1',
-                bio=u'Down',
-                master=master,
-                status=v
-                )
-    session.add(target_node)
-    session.commit()
-
-
-
-@celery.task
-@salt_command
-def salt_nodes_sync():
-    result = []
-    count = 0
-    data = redisapi.hgetall(name='status')
-    try:
-        for (k, v) in convert(data).items():
-            if v == 'down':
-                salt_mark_status(k, v)
-                continue
-            target_node = session.query(
-                Nodedb).filter_by(node_name=k).first()
-            node_data = salt_minion(k)
-            db_data = node_data['return'][0][k]
-            try:
-                if target_node:
-                    target_node.minion_data = db_data
-                    target_node.node_ip=db_data.get('ipv4','1.1.1.1'),
-                    target_node.os = db_data.get('lsb_distrib_description') or (
-                        db_data.get('lsb_distrib_id') + db_data.get('lsb_distrib_release')) or (db_data.get('osfullname') + db_data('osrelease'))
-                    target_node.cpu = str(db_data[
-                        'num_cpus']) + ' * ' + str(db_data['cpu_model'])
-                    target_node.kenel = db_data['kernelrelease']
-                    target_node.mem = db_data['mem_total']
-                    target_node.host = db_data['host']
-                    target_node.status = v
-                    target_node.master = master
-                else:
-                    target_node = Nodedb(
-                        id=uuid.uuid4(),
-                        node_name=db_data['id'],
-                        node_ip=db_data.get('ipv4','1.1.1.1'),
-                        minion_data=db_data,
-                        os=db_data.get('lsb_distrib_description') or (
-                        db_data.get('lsb_distrib_id') + db_data.get('lsb_distrib_release')) or (db_data.get('osfullname') + db_data('osrelease')),
-                        cpu=str(db_data['num_cpus']) + ' * ' +
-                        str(db_data['cpu_model']),
-                        kenel=db_data['kernelrelease'],
-                        mem=db_data['mem_total'],
-                        host=db_data['host'],
-                        master=master,
-                        status=v
-                    )
-            except KeyError as e:
-                logger.warning('updating ' + k + ' with error:' + str(e.args))
-                continue
-            result.append(target_node)
-            session.add(target_node)
-    except Exception as e:
-        logger.warning('Error while updaing ' + db_data['id'] + str(e.args))
-    session.commit()
-
-    return {'ok': str(result) + ' updated with redis return: ' + str(count)}
 
 
