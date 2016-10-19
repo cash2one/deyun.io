@@ -13,7 +13,7 @@ from constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS, \
     SEX_TYPES, STRING_LEN
 from sqlalchemy_utils import UUIDType,  JSONType
 from flask_sqlalchemy import Pagination
-
+import uuid
 
 class Masterdb(db.Model):
     __tablename__ = 'masterdb'
@@ -26,7 +26,7 @@ class Masterdb(db.Model):
     master_name = Column(db.String(STRING_LEN), nullable=False,
                          unique=True, index=True, info={'verbose_name': u'主机名', })
     master_ip = Column(db.String(STRING_LEN), nullable=False,
-                       unique=True, info={'verbose_name': u'主机IP', })
+                       unique=False, info={'verbose_name': u'主机IP', })
     master_port = Column(db.String(STRING_LEN), nullable=False,
                          default="", info={'verbose_name': u'主机端口', })
     master_api_url = Column(db.String(STRING_LEN), nullable=False, default="", info={
@@ -114,11 +114,11 @@ class Nodedb(db.Model):
         return '<node %r>' % self.node_name
 
     #id = Column(db.Integer, primary_key=True)
-    id = Column(UUIDType(binary=False), primary_key=True)
+    id = Column(UUIDType(binary=False), default=uuid.uuid4, primary_key=True)
     node_name = Column(db.String(STRING_LEN), nullable=False,
                        unique=True, index=True, info={'verbose_name': u'Node名', })
     node_ip = Column(db.String(STRING_LEN), nullable=False,
-                     unique=True, info={'verbose_name': u'Node IP', })
+                     unique=False, info={'verbose_name': u'Node IP', })
     node_port = Column(db.String(STRING_LEN), nullable=False,
                        default="", info={'verbose_name': u'Node 端口', })
     username = Column(db.String(STRING_LEN),  nullable=False, default='salt')

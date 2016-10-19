@@ -11,6 +11,7 @@ from api.models import Masterdb, Nodedb
 from constants import STRING_LEN
 
 
+
 class Perf(db.Model):
 
     __tablename__ = 'perf'

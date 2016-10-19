@@ -77,16 +77,24 @@ Celery function description
 
 ### END ###
 '''
-def salttoken(loginresult=None):
-    if redisapi.hexists(name='salt',key='token'):
-        if (time.time() - float(bytes.decode(redisapi.hget(name='salt', key='expire')))) < 0.0:
-            ret = redisapi.hget(name='salt',key='token')
-            return convert(ret)
-        else:
-            return salttoken(saltapi.login(user, pawd, 'pam'))
+def salttoken():
+    try:
+        if redisapi.hexists(name='salt', key='token'):
+            if (time.time() - float(bytes.decode(redisapi.hget(name='salt', key='expire')))) < 0.0:
+                ret = redisapi.hget(name='salt', key='token')
+                return convert(ret)
+            else:
+                return saltlogin(saltapi.login(user, pawd, 'pam'))
+    except Exception as e:
+        return {'falid': e}
+
+
+def saltlogin(loginresult=None):
     if loginresult:
         for k in loginresult.keys():
             redisapi.hset(name='salt', key=k, value=loginresult[k])
+    else:
+        raise Exception('require login string')
     return salttoken()
 
 '''
@@ -171,7 +179,13 @@ Celery function description
 
 ### END ###
 '''
-
+@salt_command
+def salt_minion(node_name):
+    try:
+        ret = saltapi.req_get('/minions/' + node_name)
+    except Exception as e:
+        return {'failed': e}
+    return ret
 
 @celery.task
 def salt_mark_status(k,v):
@@ -202,6 +216,8 @@ this task based on the result of salt_minion_status, may return none
 
 ### END ###
 '''
+
+
 
 @celery.task
 @salt_command
@@ -255,7 +271,7 @@ def salt_nodes_sync():
             result.append(target_node)
             session.add(target_node)
     except Exception as e:
-        logger.warning('Error while updaing ' + db_data['id'] + str(e.args))
+        logger.warning('Error while updaing ' + str(((k, v))) + str(e.args))
     session.commit()
 
     return {'ok': str(result) + ' updated with redis return: ' + str(count)}
