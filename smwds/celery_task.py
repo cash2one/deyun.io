@@ -34,7 +34,8 @@ logger = logging.getLogger('task')
 
 celery, session = create_celery_app()
 
-celery.config_from_object('prod', silent=True)
+#celery.config_from_object('prod', silent=True)
+celery.config_from_object('celery_config')
 
 indbapi = Indb(config['INDB_HOST'] + ':' + config['INDB_PORT'])
 
