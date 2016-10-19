@@ -229,9 +229,9 @@ def salt_nodes_sync():
         return {'failed': 'no status data in redis cache '}
     try:
         for (k, v) in convert(data).items():
-            if v == 'down':
-                salt_mark_status(k, v)
-                continue
+            #if v == 'down':
+            #    salt_mark_status(k, v)
+            #    continue
             target_node = session.query(
                 Nodedb).filter_by(node_name=k).first()
             node_data = salt_minion(k)
