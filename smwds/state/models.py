@@ -3,15 +3,13 @@
 from sqlalchemy import Column, desc, func
 from sqlalchemy.orm import backref
 from sqlalchemy_utils import aggregated
-
-
 from extensions import db
 from utils import get_current_time
 from api import Masterdb, Nodedb
-from node import Pref
+from constants import SEX_TYPES, STRING_LEN
 
 
-class Message(db.Model)
+class Message(db.Model):
 
     __tablename__ = 'messages'
 
@@ -23,16 +21,16 @@ class Message(db.Model)
     is_read = Column(db.Boolean)
 
 
-class Statistics(db.model)
+class Statistics(db.Model):
 
     __tablename__ = 'statistics'
 
     id = Column(db.Integer, primary_key=True)
     update_at = Column(db.DateTime)
     managed_nodes = Column(db.Integer, nullable=False, default=0)
-    system_capacity = Colum(db.Integer, nullable=False, default=0)
-    system_utilization = Colum(db.Float, nullable=False, default=0.0)
-    user_count = Colum(db.Integer, nullable=False, default=0.0)
+    system_capacity = Column(db.Integer, nullable=False, default=0)
+    system_utilization = Column(db.Float, nullable=False, default=0.0)
+    user_count = Column(db.Integer, nullable=False, default=0.0)
     registered_master = Column(db.Integer, nullable=False, default=0)
     total_task = Column(db.Integer, nullable=False, default=0)
     service_level = Column(db.Integer, nullable=False, default=0)

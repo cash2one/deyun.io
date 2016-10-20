@@ -12,7 +12,13 @@ import requests
 frontend = Blueprint('frontend', __name__, template_folder='../templates')
 
 #frontend = Blueprint('frontend', __name__)
+'''
+### DOC ###
 
+frontend pages 
+/index
+
+'''
 
 
 @frontend.before_request

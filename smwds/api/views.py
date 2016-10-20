@@ -18,7 +18,12 @@ from flask_sqlalchemy import Pagination
 api = Blueprint('api', __name__, url_prefix='/api/v1')
 
 api_wrap = Api(api, catch_all_404s=False)
+'''
+### DOC ###
+view function for api
 
+
+'''
 
 
 @api.before_request

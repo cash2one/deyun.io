@@ -139,6 +139,7 @@ class Nodedb(db.Model):
     minion_data = Column(JSONType(1000), nullable=False, default='')
     os = Column(db.String(STRING_LEN), nullable=False, default='')
     kenel = Column(db.String(STRING_LEN), nullable=False, default='')
+    core = Column(db.Integer, nullable=False, default=0)
     cpu = Column(db.String(STRING_LEN), nullable=False, default='')
     mem  = Column(db.String(STRING_LEN), nullable=False, default='')
     host = Column(db.String(STRING_LEN), nullable=False, default='')
@@ -162,7 +163,7 @@ class Nodedb(db.Model):
         return cls.paginate(query=q, page=page)
 
     @staticmethod
-    def paginate(query, page, per_page=20, error_out=False):
+    def paginate(query, page, per_page=2, error_out=False):
         if error_out and page < 1:
             abort(404)
         items = query.limit(per_page).offset((page - 1) * per_page).all()
