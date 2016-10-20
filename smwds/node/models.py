@@ -298,7 +298,7 @@ class Perf_Ping(db.Model):
     create_at = Column(db.DateTime, nullable=False, default=get_current_time)
     ping_target = Column(db.String(255), nullable=False,
                          unique=False, index=True)
-    ping_packet_loss = Column(db.Integer, nullable=False, default=0)
+    ping_packet_loss = Column(db.Float, nullable=False, default=0)
     ping_avg = Column(db.Float, nullable=False, default=0.0)
 
 

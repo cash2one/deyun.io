@@ -49,3 +49,5 @@ class Statistics(db.Model):
         count = db.session.execute(count_q).scalar()
         return count
 
+
+
