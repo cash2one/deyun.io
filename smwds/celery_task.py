@@ -11,10 +11,9 @@ from celery.schedules import crontab
 from weblib.libpepper import Pepper
 from weblib.indbapi import Indb
 from weblib.sensuapi import SensuAPI
-from node import Perf, Perf_Node, Perf_Cpu, Perf_Mem, Perf_TCP, Perf_Disk, Perf_System_Load, Perf_Socket, Perf_Process_Count, Perf_Netif, Perf_Ping
+from node import Perf, Perf_Node, Perf_Cpu, Perf_Mem, Perf_TCP, Perf_Disk, Perf_System_Load, Perf_Socket, Perf_Process_Count, Perf_Netif, Perf_Ping, Statistics
 from api import Masterdb, Nodedb, Location
 from user import User
-from state import Statistics
 from collections import defaultdict
 from datetime import datetime
 from sqlalchemy.sql import func
@@ -696,27 +695,89 @@ def sync_ping_from_influxdb(node='master'):
 Update statistics hash in redis
 
 '''
+
+@celery.task
+def statistics_sync():
+    result = []
+    data = convert(redisapi.hgetall(name='sitestatus'))
+    if not data:
+        logger.warning('no site status data in redis cache')
+        return {'failed': 'no site status data in redis cache'}
+    try:
+        state = Statistics(
+            system_capacity = data['system_capacity'],
+            managed_nodes = data['managed_nodes'],
+            system_utilization = convert(redisapi.hgetall(name='sitestatus')).get('system_utilization',''),
+            user_count = data['user_count'],
+            registered_master = data['registered_master'],
+            total_task = data['total_task'],
+            service_level = convert(redisapi.hgetall(name='sitestatus')).get('service_level',''),
+            uptime = data['uptime'],
+            page_visit_count = data['page_visit_count'],
+            api_visit_count = data['api_visit_count']
+            )
+        session.add(state)
+        session.commit()
+        result.append(state)
+    except Exception as e:
+        logger.warning('error in creating data in statistics')
+        return {'failed': e}
+    logger.info('Completed in writing data to statistics' + str(result))
+    return {'successed': result}
+
+@celery.task
+def statistics_page_visit():
+    try:
+        data = convert(redisapi.hgetall(name='sitestatus'))
+        if not data:
+            logger.warning('no site status data in redis cache')
+            return {'failed': 'no site status data in redis cache'} 
+        if data.get('page_visit_count' , None):
+            page_visit_count = int(data['page_visit_count'])
+        else:
+            page_visit_count = 0
+        redisapi.hset('sitestatus', 'page_visit_count', page_visit_count + 1)
+    except Exception as e:
+        return {'failed': e} 
+    return {'successed': 'page visit updated'}
+
+@celery.task
+def statistics_api_visit():
+    try:
+        data = convert(redisapi.hgetall(name='sitestatus'))
+        if not data:
+            logger.warning('no site status data in redis cache')
+            return {'failed': 'no site status data in redis cache'} 
+        if data.get('api_visit_count' , None):
+            page_visit_count = int(data['api_visit_count'])
+        else:
+            page_visit_count = 0
+        redisapi.hset('sitestatus', 'api_visit_count', page_visit_count + 1)
+    except Exception as e:
+        return {'failed': e} 
+    return {'successed': 'page visit updated'}
+
+
 @celery.task
 def statistics_update():
     try:
         redisapi.hset('sitestatus', 'managed_nodes', Nodedb.get_count())
         redisapi.hset('sitestatus', 'system_capacity', session.query(
             func.sum(Nodedb.core).label('average')).all()[0][0])
-        redisapi.hset('sitestatus', 'system_utilization', session.query(
+        redisapi.hset('sitestatus', 'system_utilization', json.dumps(session.query(
             Perf_System_Load.node_name, func.avg(
                 Perf_System_Load.load_avg_fifteen).label('average')
-        ).group_by('node_name').all())
+        ).group_by('node_name').all()))
         redisapi.hset('sitestatus', 'user_count', User.get_count())
         redisapi.hset('sitestatus', 'registered_master', Masterdb.get_count())
         redisapi.hset('sitestatus', 'total_task', 0)
-        redisapi.hset('sitestatus', 'service_level', session.query(
+        redisapi.hset('sitestatus', 'service_level', json.dumps(session.query(
             Perf_Ping.node_name, func.avg(
                 Perf_Ping.ping_packet_loss).label('average')
-        ).group_by('node_name').all())
+        ).group_by('node_name').all()))
         redisapi.hset('sitestatus', 'uptime', (datetime.utcnow() - session.query(
             Masterdb.create_at).first()[0]).days)
     except Exception as e:
-        logger.warning('error in writing data stie salt_mark_status' )
+        logger.warning('error in writing sitestatus ')
         return {'failed': e}
     logger.info('Completed in updating site status')
-    return {'successed': 'site status updated'} 
