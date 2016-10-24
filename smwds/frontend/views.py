@@ -67,7 +67,7 @@ def ret_index():
 @frontend.route('/')
 @frontend.route('/index')
 @login_required
-@cache.memoize(timeout=100)
+#@cache.memoize(timeout=100)
 def index():
     s_id = request.args.get('s_id')
     if s_id == None: 
@@ -82,8 +82,8 @@ def index():
 
 @frontend.route('/login', methods=['GET', 'POST'])
 def login():
-    if g.user is not None and g.user.is_authenticated:
-        return redirect(url_for('frontend.index'))
+    #if g.user is not None and g.user.is_authenticated:
+    #    return redirect(url_for('frontend.index'))
 
     form = LoginForm()
 

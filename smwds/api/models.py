@@ -117,8 +117,9 @@ class Nodedb(db.Model):
     id = Column(UUIDType(binary=False), default=uuid.uuid4, primary_key=True)
     node_name = Column(db.String(STRING_LEN), nullable=False,
                        unique=True, index=True, info={'verbose_name': u'Node名', })
-    node_ip = Column(db.String(STRING_LEN), nullable=False,
-                     unique=False, info={'verbose_name': u'Node IP', })
+    #node_ip = Column(db.String(STRING_LEN), nullable=False,
+    #                 unique=False, info={'verbose_name': u'Node IP', })
+    node_ip = Column(JSONType(10000), nullable=False, default='')
     node_port = Column(db.String(STRING_LEN), nullable=False,
                        default="", info={'verbose_name': u'Node 端口', })
     username = Column(db.String(STRING_LEN),  nullable=False, default='salt')
@@ -136,7 +137,7 @@ class Nodedb(db.Model):
         'masterdb.id'), nullable=False, default="", info={'verbose_name': u'Master', })
     master = db.relationship('Masterdb', backref='nodes')
     avatar = Column(db.String(STRING_LEN), nullable=False, default='')
-    minion_data = Column(JSONType(1000), nullable=False, default='')
+    minion_data = Column(JSONType(10000), nullable=False, default='')
     os = Column(db.String(STRING_LEN), nullable=False, default='')
     kenel = Column(db.String(STRING_LEN), nullable=False, default='')
     core = Column(db.Integer, nullable=False, default=0)
@@ -163,7 +164,7 @@ class Nodedb(db.Model):
         return cls.paginate(query=q, page=page)
 
     @staticmethod
-    def paginate(query, page, per_page=2, error_out=False):
+    def paginate(query, page, per_page=20, error_out=False):
         if error_out and page < 1:
             abort(404)
         items = query.limit(per_page).offset((page - 1) * per_page).all()

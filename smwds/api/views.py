@@ -5,19 +5,35 @@ import time
 import json
 import requests
 import hashlib
+import logging
+import redis
+from utils import convert 
 from flask import Blueprint, request, jsonify, current_app, session
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_restful import Api, Resource
 from extensions import cache, db
 from weblib.libpepper import Pepper
 from weblib.indbapi import Indb
+from weblib.sensuapi import SensuAPI
 from api.models import Masterdb, Nodedb, Location
+from flask_sqlalchemy import Pagination
+try:
+    from prod import config
+except:
+    from config import DefaultConfig as config
 
-from flask_sqlalchemy import Pagination 
+indbapi = Indb(config['INDB_HOST'] + ':' + config['INDB_PORT'])
+
+sensuapi = SensuAPI(config['SENSU_HOST'] + ':' + config['SENSU_PORT'])
+
+redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config['REDIS_PORT'], db=config['REDIS_DB'])
 
 api = Blueprint('api', __name__, url_prefix='/api/v1')
-
+logger = logging.getLogger('api')
+logger.setLevel(20)
 api_wrap = Api(api, catch_all_404s=False)
+
+
 '''
 ### DOC ###
 view function for api
@@ -31,7 +47,7 @@ def api_before_request():
     pass
 
 def api_log(status_code):
-    current_app.logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + str(status_code))
+    logger.info(str(current_user.name) + "@uid:" + str(current_user.id)+ " @session:"+ session.session_id + " @request_url:" + request.url + " @ret:" + str(status_code))
 
 def getsaltapi(master):
 
@@ -148,9 +164,13 @@ class influx_db(Resource):
 
         return json.dumps(ret)
 
+class site_status(Resource):
+    def get(self):
+        data = redisapi.hgetall('sitestatus')
+        if data:
+            return json.dumps(convert(data))
 
+api_wrap.add_resource(site_status, '/sitestatus')
 api_wrap.add_resource(saltapi_get, '/<string:master_id>/<string:path>')
-api_wrap.add_resource(
-    saltapi_monion, '/nodes/<string:minion_id>')
-api_wrap.add_resource(
-    influx_db, '/indb/24/<string:node>/<string:db>/<string:table>')
+api_wrap.add_resource(saltapi_monion, '/nodes/<string:minion_id>')
+api_wrap.add_resource(influx_db, '/indb/24/<string:node>/<string:db>/<string:table>')

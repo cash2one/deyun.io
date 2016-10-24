@@ -23,7 +23,7 @@ class Statistics(db.Model):
     user_count = Column(db.Integer, nullable=False, default=0.0)
     registered_master = Column(db.Integer, nullable=False, default=0)
     total_task = Column(db.Integer, nullable=False, default=0)
-    service_level = Column(JSONType(10000))
+    service_level = Column(JSONType(10000),nullable=False, default='')
 
     uptime = Column(db.Integer, nullable=False, default=0)
     page_visit_count = Column(db.Integer, nullable=False, default=0)
