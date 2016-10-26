@@ -7,12 +7,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from config import DefaultConfig
 from utils import INSTANCE_FOLDER_PATH
-from extensions import db, login_manager, cache, Anonymous, celery
+from extensions import db, login_manager, cache, Anonymous, celery, socketio
 from filters import format_date, pretty_date, nl2br
 from user import User
 from weblib.redissession import RedisSession
 from celery import Celery
-from socket_conn import Socket_conn
+
 import eventlet 
 
 
@@ -20,7 +20,7 @@ import os
 
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
-socketio = SocketIO()
+
 app_name = None
 
 def create_app(config=None, app_name=None):
@@ -45,7 +45,7 @@ def create_app(config=None, app_name=None):
     configure_template_filters(app)
     configure_error_handlers(app)
     configure_hook(app)
-    celery.init_app(app)
+
     return app
 
 def create_socket_celery(app=None):

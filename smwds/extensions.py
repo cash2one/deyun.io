@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import flask
 
+from flask_socketio import SocketIO
+socketio = SocketIO()
+
 from flask_sqlalchemy import SQLAlchemy
 from flask import session
 

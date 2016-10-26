@@ -54,10 +54,12 @@ class Socket_conn(Namespace):
         emit('my_pong')
 
     def on_connect(self):
-        global thread
-        if thread is None:
-            thread = socketio.start_background_task(target=background_thread)
-        emit('my_response', {'data': 'Connected', 'count': 0})
+        emit('userid', {'userid': userid})
+        emit('status', {'status': 'Connected user', 'userid': userid})
+        #global thread
+        #if thread is None:
+        #    thread = socketio.start_background_task(target=background_thread)
+        #emit('my_response', {'data': 'Connected', 'count': 0})
 
     def on_disconnect(self):
         print('Client disconnected', request.sid)
