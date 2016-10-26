@@ -6,14 +6,12 @@ from api.views import get_toplogy
 from user import User
 from extensions import cache
 from node import Indb_func
-from extensions import socketio
-from socket_conn import Socket_conn
 import uuid, hashlib
 import requests
 
 
 frontend = Blueprint('frontend', __name__, template_folder='../templates')
-socketio.on_namespace(Socket_conn('/test'))
+
 #frontend = Blueprint('frontend', __name__)
 '''
 ### DOC ###

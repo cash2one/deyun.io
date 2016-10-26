@@ -2,7 +2,7 @@ from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_script import Manager
 from flask_socketio import SocketIO
-
+from socket_conn import Socket_conn
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from config import DefaultConfig
@@ -17,7 +17,7 @@ import eventlet
 
 
 import os
-
+#eventlet.monkey_patch()
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
 
@@ -150,7 +150,7 @@ def configure_app(app, config=None):
     cache.init_app(app, config=cache_config)
     RedisSession(app)
     socketio = SocketIO(app, async_mode='eventlet', message_queue=app.config['SOCKETIO_REDIS_URL'])  
-
+    socketio.on_namespace(Socket_conn('/test'))
 
 
 def configure_extensions(app):

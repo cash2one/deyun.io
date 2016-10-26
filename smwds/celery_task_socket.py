@@ -68,12 +68,14 @@ Celery function description
 ### END ###
 '''
 
+
+
 @celery.task
 def self_test(x=16, y=16):
     x = int(x)
     y = int(y)
-    res = add.apply_async((x, y))
-    context = {"id": res.task_id, "x": x, "y": y}
+    res = x + y
+    context = {"id": "test", "x": x, "y": y}
     result = "add((x){}, (y){})".format(context['x'], context['y'])
     goto = "{}".format(context['id'])
     return json.dumps({'result':result, 'goto':goto})
