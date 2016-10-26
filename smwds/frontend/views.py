@@ -99,7 +99,7 @@ def login():
             session['uid'] = str(user.id)
             session['sid'] = hashlib.md5(str(user.id).encode('utf-8')).hexdigest()
             login_user(user, remember=session['remember_me'])
-            current_app.logger.info(str(session))
+            #current_app.logger.info(str(session))
             return redirect(url_for('frontend.index',s_id=session['sid']))
         else:
             current_app.logger.warning(

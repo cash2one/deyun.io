@@ -1,20 +1,27 @@
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask_script import Manager
+from flask_socketio import SocketIO
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 from config import DefaultConfig
 from utils import INSTANCE_FOLDER_PATH
-from extensions import db, login_manager, cache, Anonymous
+from extensions import db, login_manager, cache, Anonymous, celery
 from filters import format_date, pretty_date, nl2br
 from user import User
 from weblib.redissession import RedisSession
 from celery import Celery
+from socket_conn import Socket_conn
+import eventlet 
+
 
 import os
 
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
-
+socketio = SocketIO()
+app_name = None
 
 def create_app(config=None, app_name=None):
     """Create a Flask app."""
@@ -25,6 +32,52 @@ def create_app(config=None, app_name=None):
     app = Flask(
         app_name,
         instance_path=INSTANCE_FOLDER_PATH,
+        root_path=INSTANCE_FOLDER_PATH,
+        instance_relative_config=True,
+        static_url_path=None,
+        static_folder=None
+    )
+    configure_app(app, config)
+    
+    configure_blueprints(app)
+    configure_extensions(app)
+    configure_logging(app)
+    configure_template_filters(app)
+    configure_error_handlers(app)
+    configure_hook(app)
+    celery.init_app(app)
+    return app
+
+def create_socket_celery(app=None):
+    app = create_app()
+    #celery.conf.update(app.config)
+    app.app_context().push()
+
+
+    # an Engine, which the Session will use for connection
+    # resources
+    celery_task = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+
+    # create a configured "Session" class
+    Session = sessionmaker(bind=celery_task)
+    
+    # create a Session
+    session = Session()
+    return app , session
+
+def create_celery_app(app=None):
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    #app = create_app()
+    if app_name is None:
+        app_name = DefaultConfig.PROJECT
+
+    app = Flask(
+        app_name,
+        instance_path=INSTANCE_FOLDER_PATH,
+        root_path=INSTANCE_FOLDER_PATH,
         instance_relative_config=True,
         static_url_path=None,
         static_folder=None
@@ -38,18 +91,9 @@ def create_app(config=None, app_name=None):
     configure_error_handlers(app)
     configure_hook(app)
 
-    return app
-
-
-def create_celery_app(app=None):
-
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-
-    app = create_app()
     celery = Celery(app.__class__)
     celery.config_from_object('celery_config')
-    #app.config.from_pyfile('prod.py', silent=True)
+    
     TaskBase = celery.Task
 
     class ContextTask(TaskBase):
@@ -63,6 +107,7 @@ def create_celery_app(app=None):
     #celery.conf.update(app.config)
     app.app_context().push()
 
+
     # an Engine, which the Session will use for connection
     # resources
     celery_task = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -72,6 +117,8 @@ def create_celery_app(app=None):
     
     # create a Session
     session = Session()
+
+
     return celery , session
 
 
@@ -102,7 +149,9 @@ def configure_app(app, config=None):
 
     cache.init_app(app, config=cache_config)
     RedisSession(app)
-    
+    socketio = SocketIO(app, async_mode='eventlet', message_queue=app.config['SOCKETIO_REDIS_URL'])  
+
+
 
 def configure_extensions(app):
         # flask-sqlalchemy
@@ -182,7 +231,7 @@ def configure_logging(app):
 
     # Set info level on logger, which might be overwritten by handers.
     # Suppress DEBUG messages.
-    app.logger.setLevel(logging.NOTSET)
+    app.logger.setLevel(logging.INFO)
 
     #info_log
     info_log = os.path.join(app.config['LOG_FOLDER'], 'info.log')
@@ -258,6 +307,7 @@ def configure_error_handlers(app):
 def initdb():
     db.drop_all()
     db.create_all()
+
 
 
 if __name__ == '__main__':

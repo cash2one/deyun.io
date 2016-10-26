@@ -1,11 +1,10 @@
-#!/usr/bin/python
+ #!/usr/bin/python
 #coding:utf-8
 
 
 from celery import Celery, platforms
 from flask import Flask, current_app
 import random, time, json, redis, time, logging, base64
-from app import create_celery_app
 from celery.signals import task_prerun
 from datetime import timedelta
 from celery.schedules import crontab
@@ -24,26 +23,36 @@ except:
     pass
 from functools import wraps
 from utils import convert
+from extensions import celery,db
+#import app
+#tapp,session = app.create_socket_celery()
+#celery.init_app(tapp)
+
+
+
+celery.config_from_object('celery_socket_config')
 
 logger = logging.getLogger('task')
 
-celery, session = create_celery_app()
+#celery, session = create_celery_app()
 
-celery.config_from_object('celery_config')
+#celery.config_from_object('prod', silent=True)
+#load config from celery_config.py , store other api information in prod.py
+
 
 indbapi = Indb(config['INDB_HOST'] + ':' + config['INDB_PORT'])
 
 sensuapi = SensuAPI(config['SENSU_HOST'] + ':' + config['SENSU_PORT'])
 
-master = session.query(Masterdb).first()
-try:
-    saltapi = Pepper(master.ret_api())
-    user = master.username
-    pawd = convert(base64.b64decode(master.password))
-except:
-    saltapi = Pepper(config['SALTAPI_HOST'])
-    user = config['SALTAPI_USER']
-    pawd = config['SALTAPI_PASS']
+#master = session.query(Masterdb).first()
+#try:
+#    saltapi = Pepper(master.ret_api())
+#    user = master.username
+#    pawd = convert(base64.b64decode(master.password))
+#except:
+saltapi = Pepper(config['SALTAPI_HOST'])
+user = config['SALTAPI_USER']
+pawd = config['SALTAPI_PASS']
 
 redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config['REDIS_PORT'], db=config['REDIS_DB'])
 
@@ -717,8 +726,8 @@ def statistics_sync():
             page_visit_count = data['page_visit_count'],
             api_visit_count = data['api_visit_count']
             )
-        session.add(state)
-        session.commit()
+        db.session.add(state)
+        db.session.commit()
         result.append(state)
     except Exception as e:
         logger.warning('error in creating data in statistics')

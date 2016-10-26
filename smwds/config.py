@@ -22,7 +22,7 @@ class BaseConfig(object):
     SECRET_KEY = 'secret key'
 
     LOG_FOLDER = os.path.join(INSTANCE_FOLDER_PATH, 'logs')
-
+    LOGGER_NAME  = 'swmds'
     #sql query log setting
     DB_QUERY_TIMEOUT = 0.0001
     SQLALCHEMY_RECORD_QUERIES = True
@@ -44,7 +44,7 @@ class BaseConfig(object):
     REDIS_URL = "redis://localhost:6379"
     PERMANENT_SESSION_LIFETIME = timedelta(seconds= 60 * 60 * 24)
 
- 
+    SOCKETIO_REDIS_URL = 'redis://localhost:6379/0'
 
 
 class DefaultConfig(BaseConfig):

@@ -15,6 +15,7 @@ INSTANCE_FOLDER_PATH = os.path.join('/tmp', 'instance')
 
 ALLOWED_AVATAR_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
+
 # Model
 STRING_LEN = 64
 
