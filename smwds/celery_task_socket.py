@@ -24,6 +24,9 @@ except:
 from functools import wraps
 from utils import convert
 from extensions import celery,db
+from requests import post
+from flask_socketio import SocketIO
+
 #import app
 #tapp,session = app.create_socket_celery()
 #celery.init_app(tapp)
@@ -68,18 +71,25 @@ Celery function description
 ### END ###
 '''
 
+def ret_master():
+     master = db.session.query(Masterdb).first()
+     return master
 
 
 @celery.task
-def self_test(x=16, y=16):
+def self_test(x=16, y=16,url=None):
     x = int(x)
     y = int(y)
     res = x + y
     context = {"id": "test", "x": x, "y": y}
     result = "add((x){}, (y){})".format(context['x'], context['y'])
     goto = "{}".format(context['id'])
-    return json.dumps({'result':result, 'goto':goto})
-
+    time.sleep(10)
+    meta = json.dumps({'result':result, 'goto':goto})
+    #post(url, json=meta)
+    socketio = SocketIO(message_queue='redis://localhost:6379/0')
+    socketio.emit('connect', meta, namespace='/test')
+    return meta
 '''
 ### DOC ###
 
@@ -204,8 +214,10 @@ def salt_minion(node_name):
 
 @celery.task
 def salt_mark_status(k,v):
-    target_node = session.query(
+    target_node = db.session.query(
                 Nodedb).filter_by(node_name=k).first()
+    master = ret_master()
+    #TODO
     if target_node:
         target_node.status = v
     else:
@@ -217,8 +229,8 @@ def salt_mark_status(k,v):
                 master=master,
                 status=v
                 )
-    session.add(target_node)
-    session.commit()
+    db.session.add(target_node)
+    db.session.commit()
 
 '''
 ### DOC ###
@@ -247,10 +259,12 @@ def salt_nodes_sync():
             if v == 'down':
                 salt_mark_status(k, v)
                 continue
-            target_node = session.query(
+            target_node = db.session.query(
                 Nodedb).filter_by(node_name=k).first()
             node_data = salt_minion(k)
             db_data = node_data['return'][0][k]
+            master = ret_master()
+            #TODO
             try:
                 if target_node:
                     target_node.minion_data = db_data
@@ -286,10 +300,10 @@ def salt_nodes_sync():
                 logger.warning('updating ' + k + ' with error:' + str(e.args))
                 continue
             result.append(target_node)
-            session.add(target_node)
+            db.session.add(target_node)
     except Exception as e:
         logger.warning('Error while updaing ' + str(((k, v))) + str(e.args))
-    session.commit()
+    db.session.commit()
 
     return {'ok': str(result) + ' updated with redis return: ' + str(count)}
 

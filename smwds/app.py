@@ -17,6 +17,9 @@ import eventlet
 
 
 import os
+'''
+Enable the monkey_patch if run into a socket issue
+'''
 #eventlet.monkey_patch()
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
@@ -47,7 +50,11 @@ def create_app(config=None, app_name=None):
     configure_hook(app)
 
     return app
+'''
 
+deprecated function for db syncing
+
+'''
 def create_socket_celery(app=None):
     app = create_app()
     #celery.conf.update(app.config)
@@ -64,6 +71,12 @@ def create_socket_celery(app=None):
     # create a Session
     session = Session()
     return app , session
+
+'''
+
+deprecated function for db syncing
+
+'''
 
 def create_celery_app(app=None):
 

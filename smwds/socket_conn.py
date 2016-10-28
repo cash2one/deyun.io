@@ -1,7 +1,8 @@
-from flask import Flask, render_template, session, request, current_app, session
+from flask import Flask, render_template, session, request, current_app, session, url_for
 from flask_socketio import SocketIO, Namespace, emit, join_room, leave_room, \
     close_room, rooms, disconnect
 from celery_task_socket import self_test
+
 import logging
 
 
@@ -54,11 +55,13 @@ class Socket_conn(Namespace):
         emit('my_pong')
 
     def on_connect(self):
-        emit('userid', {'userid': session.session_id})
+        join_room('1')
         emit('status', {'status': 'Connected user', 'userid': session.session_id})
         current_app.logger.info('connected' + session.session_id)
+        #self_test.delay(url = url_for('frontend.test', _external=True))
         self_test.delay()
         emit('job started')
+        return {'ok'}
         #global thread
         #if thread is None:
         #    thread = socketio.start_background_task(target=background_thread)
