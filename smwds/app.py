@@ -83,26 +83,7 @@ def create_celery_app(app=None):
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
 
-    #app = create_app()
-    if app_name is None:
-        app_name = DefaultConfig.PROJECT
-
-    app = Flask(
-        app_name,
-        instance_path=INSTANCE_FOLDER_PATH,
-        root_path=INSTANCE_FOLDER_PATH,
-        instance_relative_config=True,
-        static_url_path=None,
-        static_folder=None
-    )
-    configure_app(app, config)
-    
-    configure_blueprints(app)
-    configure_extensions(app)
-    configure_logging(app)
-    configure_template_filters(app)
-    configure_error_handlers(app)
-    configure_hook(app)
+    app = create_app()
 
     celery = Celery(app.__class__)
     celery.config_from_object('celery_config')
