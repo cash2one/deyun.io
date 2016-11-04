@@ -132,17 +132,54 @@
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
             
         {% block content %}{% endblock %}
-    <!--
-    SocketIO connections
+    
+
     
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
-            // Use a "/test" namespace.
+            function hidedata(e)
+            { 
+                data = document.getElementsByClassName(e);
+                for( var i = 0; i < data.length; i++) { data[i].style.visibility = "hidden"};
+                showloading('site-loading');
+            }
+            function showdata(e)
+            { 
+
+                data = document.getElementsByClassName(e);
+                for( var i = 0; i < data.length; i++) { data[i].style.visibility = "visible"};
+                hideloading('site-loading');
+            }
+            function hideloading(e)
+            { 
+
+                data = document.getElementsByClassName(e);
+                for( var i = 0; i < data.length; i++) {
+                data[i].style.visibility = "hidden";
+                data[i].style.animationPlayState = "paused";
+                    };
+            }
+            function showloading(e)
+            { 
+                data = document.getElementsByClassName(e);
+                for( var i = 0; i < data.length; i++) {
+                data[i].style.visibility = "visible";
+                data[i].style.animationPlayState = "running";
+                    };
+            
+            }
+
+            hidedata('sitestatus')
+        
+            setTimeout(function(){ showdata("sitestatus"); }, 8000);
+            setTimeout(function(){ hidedata("sitestatus"); }, 12000);
+            setTimeout(function(){ showdata("sitestatus"); }, 16000);
+
             // An application can open a connection on multiple namespaces, and
             // Socket.IO will multiplex all those connections on a single
             // physical channel. If you don't care about multiple channels, you
             // can set the namespace to an empty string.
-            namespace = '/test';
+            namespace = '/deyunio';
 
             // Connect to the Socket.IO server.
             // The connection URL has the following format:
@@ -156,6 +193,12 @@
                 socket.emit('my_event', {data: 'I\'m connected!'});
                 console.log('I\'m connected! :' + msg);
             });
+            socket.on('sitestatus', function(msg) {
+                console.log('sitestatus:' + msg);
+            });
+            socket.on('status', function(msg) {
+                console.log('status:' + msg);
+            });
 
             // Event handler for server sent data.
             // The callback function is invoked whenever the server emits data
@@ -164,7 +207,7 @@
             
             });
         </script>
--->
+
         <div class="footer">
             <div class="pull-right">
                 10GB of <strong>250GB</strong> Free.

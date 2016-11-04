@@ -1,7 +1,8 @@
 from flask import Flask, render_template, session, request, current_app, session, url_for
 from flask_socketio import SocketIO, Namespace, emit, join_room, leave_room, \
     close_room, rooms, disconnect
-from celery_task_socket import self_test
+from celery_task_socket import self_test, emit_site_status
+import json
 
 import logging
 
@@ -58,14 +59,18 @@ class Socket_conn(Namespace):
     def on_my_ping(self):
         emit('my_pong')
 
+    def on_others(self):
+        pass
+
     def on_connect(self):
         current_app.logger.info('@sid:' + str(session.session_id) + ':connected')
+
         #All client joined the 
         #join_room('1')
 
-        #emit('status', {'status': 'Connected user', 'userid': session.session_id})
+        emit('status', json.dumps({'status': 'Connected user', 'userid': session.session_id}))
         #self_test.delay(url = url_for('frontend.test', _external=True))
-        self_test.delay()
+        emit_site_status.delay()
         #emit('job started')
         #global thread
         #if thread is None:

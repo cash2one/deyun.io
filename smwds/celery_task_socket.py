@@ -75,6 +75,15 @@ def ret_master():
      master = db.session.query(Masterdb).first()
      return master
 
+def socket_emit(meta=None, event='others'):
+    try:
+        socketio = SocketIO(message_queue=current_app.config['SOCKETIO_REDIS_URL'])
+        socketio.emit(event, meta, namespace='/deyunio')
+    except Exception as e:
+        logger.warning('error in loading sitestatus ' + str(e))
+        return {'failed': e}
+    return {("sent " + str(event)) : meta}
+
 
 @celery.task
 def self_test(x=16, y=16,url=None):
@@ -88,8 +97,20 @@ def self_test(x=16, y=16,url=None):
     meta = json.dumps({'result':result, 'goto':goto})
     #post(url, json=meta)
     socketio = SocketIO(message_queue='redis://localhost:6379/0')
-    socketio.emit('connect', meta, namespace='/test')
+    socketio.emit('connect', meta, namespace='/deyunio')
     return meta
+
+@celery.task
+def emit_site_status():
+    try:
+        data = convert(redisapi.hgetall('sitestatus'))
+    except Exception as e :
+        logger.warning('error in loading sitestatus ')
+        return {'failed': e}
+    meta = json.dumps(data)
+    socket_emit(meta = meta, event='sitestatus')
+
+
 '''
 ### DOC ###
 

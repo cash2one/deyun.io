@@ -144,7 +144,7 @@ def configure_app(app, config=None):
     cache.init_app(app, config=cache_config)
     RedisSession(app)
     socketio = SocketIO(app, async_mode='eventlet', message_queue=app.config['SOCKETIO_REDIS_URL'])  
-    socketio.on_namespace(Socket_conn('/test'))
+    socketio.on_namespace(Socket_conn('/deyunio'))
 
 
 def configure_extensions(app):
