@@ -26,6 +26,7 @@ from utils import convert
 from extensions import celery,db
 from requests import post
 from flask_socketio import SocketIO
+from statistics import mean
 
 #import app
 #tapp,session = app.create_socket_celery()
@@ -99,11 +100,28 @@ def self_test(x=16, y=16,url=None):
     socketio = SocketIO(message_queue='redis://localhost:6379/0')
     socketio.emit('connect', meta, namespace='/deyunio')
     return meta
+'''
+emit the site status data by sockitio
+'''
+def mean_status(data):
+    '''
+    return the mean value for the value[1]
+    '''
+    j = json.loads(data)
+    r =  mean([x[1] for x in j]) * 100 
+    return '{:.2f}'.format(r)
+
+def ret_socket_sitestatus():
+    d = convert(redisapi.hgetall('sitestatus'))
+    d['service_level'] = str(100.0 - float(mean_status(d['service_level'])))
+    d['system_utilization'] = str(mean_status(d['system_utilization']))
+    return d
+
 
 @celery.task
 def emit_site_status():
     try:
-        data = convert(redisapi.hgetall('sitestatus'))
+        data = ret_socket_sitestatus()
     except Exception as e :
         logger.warning('error in loading sitestatus ')
         return {'failed': e}

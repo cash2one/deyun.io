@@ -55,9 +55,14 @@ class Socket_conn(Namespace):
         emit('my_response',
              {'data': 'Disconnected!', 'count': session['receive_count']})
         disconnect()
+    
+    def on_func_init(self,message):
+        data =  message['data'] 
+        if  data:
+            if data == 'sitestatus':
+              emit_site_status.delay()
 
-    def on_my_ping(self):
-        emit('my_pong')
+
 
     def on_others(self):
         pass
@@ -70,7 +75,7 @@ class Socket_conn(Namespace):
 
         emit('status', json.dumps({'status': 'Connected user', 'userid': session.session_id}))
         #self_test.delay(url = url_for('frontend.test', _external=True))
-        emit_site_status.delay()
+        emit('func_init','sitestatus')
         #emit('job started')
         #global thread
         #if thread is None:

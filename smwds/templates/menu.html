@@ -137,18 +137,21 @@
     
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
-            function hidedata(e)
+            function cleardata(e)
             { 
+                ///data = document.getElementsByClassName(e);
+                ///for( var i = 0; i < data.length; i++) { data[i].style.visibility = "hidden"};
+                ///showloading('site-loading');
                 data = document.getElementsByClassName(e);
-                for( var i = 0; i < data.length; i++) { data[i].style.visibility = "hidden"};
-                showloading('site-loading');
+                for( var i = 0; i < data.length; i++) { data[i].innerHTML = ""};             
+
+
             }
             function showdata(e)
             { 
 
                 data = document.getElementsByClassName(e);
                 for( var i = 0; i < data.length; i++) { data[i].style.visibility = "visible"};
-                hideloading('site-loading');
             }
             function hideloading(e)
             { 
@@ -166,14 +169,25 @@
                 data[i].style.visibility = "visible";
                 data[i].style.animationPlayState = "running";
                     };
-            
             }
+            function update_sitestatus(j){
+                console.log(j);
+                data = JSON.parse(j);
+                
+                console.log(data);
+                document.getElementById('node').innerHTML = data.managed_nodes;
+                document.getElementById('sc').innerHTML =  data.system_capacity;
+                document.getElementById('su').innerHTML =  data.system_utilization + '%';
+                document.getElementById('user').innerHTML =  data.user_count;
+                document.getElementById('mm').innerHTML =  data.registered_master;
+                document.getElementById('task').innerHTML =  data.total_task;
+                document.getElementById('sl').innerHTML =  data.service_level + '%';
+                document.getElementById('up').innerHTML = data.uptime + 'd';
+                hideloading('site-loading');
 
-            hidedata('sitestatus')
-        
-            setTimeout(function(){ showdata("sitestatus"); }, 8000);
-            setTimeout(function(){ hidedata("sitestatus"); }, 12000);
-            setTimeout(function(){ showdata("sitestatus"); }, 16000);
+            }
+            ///node sc su  user mm task sl up 
+            
 
             // An application can open a connection on multiple namespaces, and
             // Socket.IO will multiplex all those connections on a single
@@ -195,10 +209,42 @@
             });
             socket.on('sitestatus', function(msg) {
                 console.log('sitestatus:' + msg);
+                update_sitestatus(msg);
+            });
+            socket.on('func_init', function(msg) {
+                console.log('function : ' + msg + ' initialized ');
+               switch (msg) {
+                            case 'sitestatus':
+                                cleardata('sitestatus');
+                                showloading('site-loading');
+                                socket.emit('func_init',{data: msg})
+                                break;
+                            case 1:
+                                
+                                break;
+                            case 2:
+                                
+                                break;
+                            case 3:
+                                
+                                break;
+                            case 4:
+                                
+                                break;
+                            case 5:
+                                
+                                break;
+                            case 6:
+                                break;
+                            default:
+                                 console.log('wrong function name');
+                        } 
+
             });
             socket.on('status', function(msg) {
                 console.log('status:' + msg);
             });
+
 
             // Event handler for server sent data.
             // The callback function is invoked whenever the server emits data
