@@ -37,7 +37,7 @@ from statistics import mean
 celery.config_from_object('celery_socket_config')
 
 logger = logging.getLogger('task')
-
+logger.setLevel(20)
 #celery, session = create_celery_app()
 
 #celery.config_from_object('prod', silent=True)
@@ -83,7 +83,8 @@ def socket_emit(meta=None, event='others'):
     except Exception as e:
         logger.warning('error in loading sitestatus ' + str(e))
         return {'failed': e}
-    return {("sent " + str(event)) : meta}
+    logger.info({('sent'  + str(event)) : meta})
+    return {('sent'  + str(event)) : meta}
 
 
 @celery.task
@@ -101,8 +102,65 @@ def self_test(x=16, y=16,url=None):
     socketio.emit('connect', meta, namespace='/deyunio')
     return meta
 '''
+
+'''
+def get_toplogy():
+    m_node = Masterdb.query.all()
+    s_node = Nodedb.query.all()
+    node_list = []
+    for item in s_node:
+        node_list.append({'data': {'id': item.node_name}})
+    for item in m_node:
+        node_list.append({'data': {'id': item.master_name}})
+    edge_list = []
+    for item in s_node:
+        edge_list.append(
+            {'data': {'source': item.node_name, 'target': item.master.master_name}})
+    data = {
+        'nodes': node_list,
+        'edges': edge_list
+    }
+    logger.info({'ok':'get_toplogy'})
+    return json.dumps(data)
+
+
+@celery.task
+def update_master_status():
+    try:
+        master = Masterdb.query.first()
+        r = indbapi.ret_point_24h(
+            table='memory_percent_usedWOBuffersCaches', db='graphite', host=master.master_name)
+        p = indbapi.ret_point_24h(
+            table='cpu_user', db='graphite', host=master.master_name)
+        index_data = {
+            'top': get_toplogy(),
+            master.master_name : {'mem':r,'cpu': p}
+        }
+    except Exception as e:
+        logger.warning('error in writing master status ' + str(e))
+        return {'failed':e}
+    else:
+        redisapi.set('index_data', json.dumps(index_data))
+    logger.info({'ok':index_data})
+    return {"ok":index_data}
+
+@celery.task
+def emit_master_status():
+    try:
+        data = json.loads(convert(redisapi.get('index_data')))
+    except Exception as e :
+        logger.warning('error in loading sitestatus ' + str(data))
+        return {'failed': e}
+    meta = json.dumps(data)
+    socket_emit(meta = meta, event='m_status')
+    logger.info({'ok':'emit_master_status'})
+
+
+
+'''
 emit the site status data by sockitio
 '''
+
 def mean_status(data):
     '''
     return the mean value for the value[1]

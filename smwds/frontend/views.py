@@ -54,23 +54,27 @@ def ret_ip():
     else:
         t_ip = request.remote_addr
     return t_ip
+'''
 
+deprecated function for updating main page
+
+'''
 
 def ret_index():
     #r = requests.get("http://127.0.0.1:8080/api/v1/indb/24/Ali.master.cn00/graphite/memory_percent_usedWOBuffersCaches")
-    r = Indb_func.monitor_data(
-        table='memory_percent_usedWOBuffersCaches', db='graphite', node='Ali.master.cn00')
-    p = Indb_func.monitor_data(
-        table='cpu_user', db='graphite', node='Ali.master.cn00')
+    #r = Indb_func.monitor_data(
+    #    table='memory_percent_usedWOBuffersCaches', db='graphite', node='Ali.master.cn00')
+    #p = Indb_func.monitor_data(
+    #    table='cpu_user', db='graphite', node='Ali.master.cn00')
     index_data = {
-        'top': get_toplogy(),
+        #'top': get_toplogy(),
         'user': {
             'name': session['username'],
             'remember_me': session['remember_me'],
             'ip': ret_ip()
-        },
-        'mem': r,
-        'cpu': p
+        }
+       # 'mem': r,
+       # 'cpu': p
     }
     current_app.logger.info(index_data)
     return index_data

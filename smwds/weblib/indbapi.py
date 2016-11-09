@@ -224,7 +224,8 @@ class Indb(object):
                 timea, "%Y-%m-%dT%H:%M:%SZ") + datetime.timedelta(seconds=60 * 60 * 8)
             timeo = timeArray.strftime("%H%M-%d")
             item[0] = timeo
-            item[1] = round(item[1], 2)
+           # item[1] = round(item[1], 2)
+            item[1] = '{:.2f}'.format(item[1])
             list_date.append(timeo)
             list_lable.append(item[1])
         result = [list_lable,list_date]

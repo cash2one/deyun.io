@@ -1,7 +1,7 @@
 from flask import Flask, render_template, session, request, current_app, session, url_for
 from flask_socketio import SocketIO, Namespace, emit, join_room, leave_room, \
     close_room, rooms, disconnect
-from celery_task_socket import self_test, emit_site_status
+from celery_task_socket import self_test, emit_site_status, emit_master_status
 import json
 
 import logging
@@ -61,6 +61,8 @@ class Socket_conn(Namespace):
         if  data:
             if data == 'sitestatus':
               emit_site_status.delay()
+            if data == 'm_status':
+              emit_master_status.delay()
 
 
 
@@ -76,6 +78,7 @@ class Socket_conn(Namespace):
         emit('status', json.dumps({'status': 'Connected user', 'userid': session.session_id}))
         #self_test.delay(url = url_for('frontend.test', _external=True))
         emit('func_init','sitestatus')
+        emit('func_init','m_status')
         #emit('job started')
         #global thread
         #if thread is None:

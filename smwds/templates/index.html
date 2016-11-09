@@ -3,114 +3,6 @@
 {% block content %}
 
         <div class="wrapper wrapper-content animated fadeIn">
-            
-                        
-                        <!--
-                        <div class="col-lg-6">
-                            <h1 class="m-b-xs">
-                                26,900
-                            </h1>
-                            <small>
-                                Master Managed
-                            </small>
-                            <div id="sparkline1" class="m-b-sm"></div>
-                            <div class="row">
-                                <div class="col-xs-4">
-                                    <small class="stats-label">Task</small>
-                                    <h4>236 321.80</h4>
-                                </div>
-
-                                <div class="col-xs-4">
-                                    <small class="stats-label">Service Level</small>
-                                    <h4>99.11%</h4>
-                                </div>
-                                <div class="col-xs-4">
-                                    <small class="stats-label">System Uptime</small>
-                                    <h4>432.021</h4>
-                                </div>
-                            </div>
-
-                        </div>
-                        <div class="col-lg-6">
-                            <h1 class="m-b-xs">
-                                98,100
-                            </h1>
-                            <small>
-                                Nodes Conneted
-                            </small>
-                            <div id="sparkline2" class="m-b-sm"></div>
-                            <div class="row">
-                                <div class="col-xs-4">
-                                    <small class="stats-label">System Capacity</small>
-                                    <h4>166 781.80</h4>
-                                </div>
-
-                                <div class="col-xs-4">
-                                    <small class="stats-label">System Utilization</small>
-                                    <h4>22.45%</h4>
-                                </div>
-                                <div class="col-xs-4">
-                                    <small class="stats-label">Users</small>
-                                    <h4>862.044</h4>
-                                </div>
-                            </div>
-
-
-                        </div>-->
-
-                        <!--<div class="col-sm-4">
-
-                            <div class="row m-t-xs">
-                                <div class="col-xs-6">
-                                    <h5 class="m-b-xs">Docker Availability</h5>
-                                    <h1 class="no-margins">
-                                    <div class="font-bold text-navy">98% <i class="fa fa-bolt"></i></div>
-                                    </h1>
-                                </div>
-                                <div class="col-xs-6">
-                                    <h5 class="m-b-xs">Docker Scalability</h5>
-                                    <h1 class="no-margins">
-                                    <div class="font-bold text-navy">300% <i class="fa fa-bolt"></i></div>
-                                    </h1>
-                                </div>
-                            </div>
-
-
-                            <table class="table small m-t-sm">
-                                <tbody>
-                                <tr>
-                                    <td>
-                                        <strong>142</strong>Instance Online
-
-                                    </td>
-                                    <td>
-                                        <strong>22</strong>Depolyment Capacity
-                                    </td>
-
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>61</strong>Instance Offline
-                                    </td>
-                                    <td>
-                                        <strong>54</strong>Depolyment Availability 
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>154</strong>Instance Fail
-                                    </td>
-                                    <td>
-                                        <strong>32</strong>Resource Availability
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-
-
-
-                        </div>-->
-
                    
                 <div class="row ">
                     <div class="col-lg-6">
@@ -121,11 +13,13 @@
                             <div class="small pull-right col-md-3 m-t-xs text-right">
                                 <strong>Chart supported by cytoscape.js</strong>
                             </div>
-                            <div id="canvas" class="flot-chart-content">
-                                
-                               <!-- <div class="flot-chart-content" id="flot-dashboard5-chart"></div>-->
-                                <div class="flot-chart-content" id="cy"></div>
-                            </div>
+                            <div id="canvas" class="m_status flot-chart-content" style="visibility:visible;">
+                                <div id="cy" class="flot-chart-content" >
+                                </div></div>
+                            <div class="m-loading sk-spinner sk-spinner-wandering-cubes" style="top:-100px;z-index:1000;">
+                             <div class="sk-cube1"></div>
+                             <div class="sk-cube2"></div>
+                             </div>
                         </div>
                     </div>
 
@@ -133,54 +27,42 @@
                         
                         <!--<div class="row m-t-lg">-->
                        <div class="widget gray-bg ">
-                            
+                              <small>
+                                Nodes Managed
+                            </small>
                              <h1 id="node" class="sitestatus m-b-xs" style="visibility:visible;"></h1>
-                            <div class="site-loading m-b-sm sk-spinner sk-spinner-wave">
+                            <div class="site-loading sk-spinner sk-spinner-wave">
                                     <div class="sk-rect1"></div>
                                     <div class="sk-rect2"></div>
                                     <div class="sk-rect3"></div>
                                     <div class="sk-rect4"></div>
                                     <div class="sk-rect5"></div>
                                 </div>
-
-                            <small>
-                                Nodes Conneted
-                            </small>
                             <div id="sparkline2" class="m-b-sm"></div>
                                    <div class="row">
                                        <div class="col-xs-4">
                                            <small class="stats-label">System Capacity</small>
-                                           <h4 id="sc" style="visibility:visible;"></h4>
-                                           <div class="site-loading sk-spinner sk-spinner-three-bounce">
-                                                 <div class="sk-bounce1"></div>
-                                                 <div class="sk-bounce2"></div>
-                                                 <div class="sk-bounce3"></div>
-                                             </div>
+                                           <h4 id="sc" class="sitestatus" style="visibility:visible;"></h4>
+                                            <div class="site-loading sk-spinner sk-spinner-rotating-plane"></div>
                                        </div>
 
                                        <div class="col-xs-4">
                                            <small class="stats-label">System Utilization</small>
-                                           <h4 id="su" style="visibility:visible;"></h4>
-                                            <div class="site-loading sk-spinner sk-spinner-three-bounce">
-                                                 <div class="sk-bounce1"></div>
-                                                 <div class="sk-bounce2"></div>
-                                                 <div class="sk-bounce3"></div>
-                                             </div>
+                                           <h4 id="su" class="sitestatus"  style="visibility:visible;"></h4>
+                                            <div class="site-loading sk-spinner sk-spinner-rotating-plane"></div>
                                        </div>
                                        <div class="col-xs-4">
                                            <small class="stats-label">Users</small>
-                                           <h4 id="user" style="visibility:visible;"></h4>
-                                             <div class="site-loading sk-spinner sk-spinner-three-bounce">
-                                                 <div class="sk-bounce1"></div>
-                                                 <div class="sk-bounce2"></div>
-                                                 <div class="sk-bounce3"></div>
-                                             </div>
+                                           <h4 id="user" class="sitestatus"  style="visibility:visible;"></h4>
+                                            <div class="site-loading sk-spinner sk-spinner-rotating-plane"></div>
                                        </div>
                                    </div>
                             </div>
 
                         <div class="widget gray-bg ">
-                    
+                            <small>
+                                Master Managed
+                            </small>
                             <h1 id="mm" class="sitestatus m-b-xs" style="visibility:visible;"></h1>
                             <!--<div class="site-loading sk-spinner sk-spinner-rotating-plane"></div>-->
                             <div class="site-loading sk-spinner sk-spinner-wave">
@@ -190,38 +72,23 @@
                                     <div class="sk-rect4"></div>
                                     <div class="sk-rect5"></div>
                                 </div>
-                            <small>
-                                Master Managed
-                            </small>
                             <div id="sparkline1" class="m-b-sm"></div>
                             <div class="row">
                                 <div class="col-xs-4">
                                     <small class="stats-label">Task Queue</small>
-                                    <h4 id="task" style="visibility:visible;"></h4>
-                                    <div class="site-loading sk-spinner sk-spinner-three-bounce">
-                                                 <div class="sk-bounce1"></div>
-                                                 <div class="sk-bounce2"></div>
-                                                 <div class="sk-bounce3"></div>
-                                    </div>
+                                    <h4 id="task" class="sitestatus"  style="visibility:visible;"></h4>
+                                    <div class="site-loading sk-spinner sk-spinner-rotating-plane"></div>
                                 </div>
 
                                 <div class="col-xs-4">
                                     <small class="stats-label">Service Level</small>
-                                    <h4 id="sl" style="visibility:visible;"></h4>
-                                    <div class="site-loading sk-spinner sk-spinner-three-bounce">
-                                                 <div class="sk-bounce1"></div>
-                                                 <div class="sk-bounce2"></div>
-                                                 <div class="sk-bounce3"></div>
-                                    </div>
+                                    <h4 id="sl" class="sitestatus"  style="visibility:visible;"></h4>
+                                    <div class="site-loading sk-spinner sk-spinner-rotating-plane"></div>
                                 </div>
                                 <div class="col-xs-4">
                                     <small class="stats-label">System Uptime</small>
-                                    <h4 id="up" style="visibility:visible;"></h4>
-                                    <div class="site-loading sk-spinner sk-spinner-three-bounce">
-                                                 <div class="sk-bounce1"></div>
-                                                 <div class="sk-bounce2"></div>
-                                                 <div class="sk-bounce3"></div>
-                                    </div>
+                                    <h4 id="up" class="sitestatus"  style="visibility:visible;"></h4>
+                                    <div class="site-loading sk-spinner sk-spinner-rotating-plane"></div>
                                 </div>
                             </div>
                         
@@ -254,24 +121,28 @@
                                 <div class="m-t-sm">
 
                                     <div class="row">
-                                        <!--<div class="col-md-8">-->
-                                        <div class="flot-chart-content">
+                                        
+                                        <div class="m_status lot-chart-content" style="visibility:visible;">
                                             <div>
                                             <canvas id="lineChart" height="114"></canvas>
                                             </div>
                                         </div>
+                                         <div class="m-loading sk-spinner sk-spinner-wandering-cubes " style="top:-50px;">
+                                          <div class="sk-cube1"></div>
+                                          <div class="sk-cube2"></div>
+                                          </div>
                                         
                                     </div>
 
                                 </div>
 
                                 <div class="m-t-md">
-                                    <small class="pull-right">
+                                    <small id="monitor_date" class="pull-right">
                                         <i class="fa fa-clock-o"> </i>
                                         Update on 16.07.2015
                                     </small>
                                     <small>
-                                        <strong>###</strong> This is a test text.
+                                        <strong id="master">Master Name</strong>
                                     </small>
                                 </div>
 
@@ -354,11 +225,25 @@
 
         $(document).ready(function() {
             
-            
-            
+           socket.on('m_status', function(msg) {
+                console.log('m_status:' + msg);
+                update_m_status(msg);
 
-            var n_data = JSON.parse( {{ index_data['top']|tojson|safe  }} );
-            //console.log(n_data)
+            });  
+
+        function update_m_status(j){
+                console.log(j);
+
+                data = JSON.parse(j);   
+                var n_data = JSON.parse(data.top);
+                console.log(n_data);
+                showdata('m_status');
+                hideloading('m-loading');
+                cy.load(n_data);
+                //cy.add(data.top);
+
+            };
+        
             var json = {
                         nodes: [
                             { data: { id: 'n0' } },
@@ -395,17 +280,17 @@
                             { data: { source: 'n13', target: 'n15' } },
                         ]
                     };
-
-            cytoscape({                        
+              /// console.log(json);
+           var cy =  cytoscape({                        
                            container: document.getElementById('cy'),
                         
-                           elements: n_data,
+                        //   elements: json,
                         
                            boxSelectionEnabled: false,
                            autounselectify: true,
 
                            layout: {
-                               name: 'dagre'
+                               name: 'random'
                            },
                            minZoom: 0.3,
                            maxZoom: 3,
@@ -437,10 +322,11 @@
                         });
                                    
 
-
+/*
             var d1 = [[1262304000000, 6], [1264982400000, 3057], [1267401600000, 20434], [1270080000000, 31982], [1272672000000, 26602], [1275350400000, 27826], [1277942400000, 24302], [1280620800000, 24237], [1283299200000, 21004], [1285891200000, 12144], [1288569600000, 10577], [1291161600000, 10295]];
             var d2 = [[1262304000000, 5], [1264982400000, 200], [1267401600000, 1605], [1270080000000, 6129], [1272672000000, 11643], [1275350400000, 19055], [1277942400000, 30062], [1280620800000, 39197], [1283299200000, 37000], [1285891200000, 27000], [1288569600000, 21000], [1291161600000, 17000]];
-
+*/
+/*
             var sparklineCharts = function(){
                 $("#sparkline1").sparkline([34, 43, 43, 35, 44, 32, 44, 52], {
                     type: 'line',
@@ -458,13 +344,6 @@
                     fillColor: "transparent"
                 });
 
-                $("#sparkline3").sparkline([34, 22, 24, 41, 10, 18, 16,8], {
-                    type: 'line',
-                    width: '100%',
-                    height: '50',
-                    lineColor: '#1C84C6',
-                    fillColor: "transparent"
-                });
             };
 
             var sparkResize;
@@ -474,14 +353,17 @@
                 sparkResize = setTimeout(sparklineCharts, 500);
             });
 
-            sparklineCharts();
 
+            sparklineCharts();*/
+
+/*
             var data1 = [
                 [0,4],[1,8],[2,5],[3,10],[4,4],[5,16],[6,5],[7,11],[8,6],[9,11],[10,20],[11,10],[12,13],[13,4],[14,7],[15,8],[16,12]
             ];
             var data2 = [
                 [0,0],[1,2],[2,7],[3,4],[4,11],[5,4],[6,2],[7,5],[8,11],[9,5],[10,4],[11,1],[12,5],[13,2],[14,5],[15,2],[16,0]
             ];
+
             $("#flot-dashboard5-chart").length && $.plot($("#flot-dashboard5-chart"), [
                         data1,  data2
                     ],
@@ -517,10 +399,10 @@
                         },
                         tooltip: false
                     }
-            );
-
-            var l_data = JSON.parse( {{ index_data['mem']|tojson|safe  }} ) 
-            var m_data = JSON.parse( {{ index_data['cpu']|tojson|safe  }} )
+            );*/
+/*
+            var l_data = "" 
+            var m_data = ""
             var lineData = {
                 //labels: ["label 1", "label 2", "label 3", "label 4", "label 5", "label 6", "label 7"],
                 labels:  l_data[1],
@@ -567,7 +449,7 @@
 
             var ctx = document.getElementById("lineChart").getContext("2d");
             var myNewChart = new Chart(ctx).Line(lineData, lineOptions);
-
+*/
 
             $('.footable').footable();
     
