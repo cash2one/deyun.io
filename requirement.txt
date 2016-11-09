@@ -18,6 +18,7 @@ Flask-RESTful==0.3.5
 Flask-Restless==0.17.0
 Flask-Script==2.0.5
 Flask-Session==0.3.0
+Flask-SocketIO==2.7.1
 Flask-SQLAlchemy==2.1
 Flask-WTF==0.12
 influxdb==3.0.0
@@ -26,9 +27,12 @@ Jinja2==2.8
 kombu==3.0.35
 MarkupSafe==0.23
 mimerender==0.6.0
+psycopg2==2.6.2
 pykerberos==1.1.13
 python-dateutil==2.5.3
+python-engineio==1.0.3
 python-mimeparse==1.5.2
+python-socketio==1.6.0
 python3-openid==3.0.10
 pytz==2016.6.1
 raven==5.23.0
