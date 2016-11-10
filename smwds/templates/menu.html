@@ -109,8 +109,8 @@
     <script src="js/plugins/flot/jquery.flot.time.js"></script>
 
     <!-- ChartJS-->
-    <script src="js/plugins/chartJs/Chart.min.js"></script>
-
+    <!--<script src="js/plugins/chartJs/Chart.min.js"></script>-->
+    <script src="js/plugins/chartJs/Chart.min23.js"></script>
     <!-- Peity -->
     <script src="js/plugins/peity/jquery.peity.min.js"></script>
     <!-- Peity demo -->
@@ -142,7 +142,7 @@
     
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
-            function cleardata(e)
+            /*function cleardata(e)
             { 
                 data = document.getElementsByClassName(e);
                 for( var i = 0; i < data.length; i++) { data[i].innerHTML = ""};             
@@ -176,7 +176,8 @@
                 data[i].style.visibility = "visible";
                 data[i].style.animationPlayState = "running";
                     };
-            }
+            }*/
+            /*
             function update_sitestatus(j){
                 ///console.log(j);
                 data = JSON.parse(j);
@@ -190,7 +191,7 @@
                 document.getElementById('up').innerHTML = data.uptime + 'd';
                 hideloading('site-loading');
 
-            }
+            }*/
             ///node sc su  user mm task sl up 
         
             socket.on('connect', function(msg) {
@@ -198,21 +199,22 @@
                 console.log('I\'m connected! :' + msg);
             });
             socket.on('sitestatus', function(msg) {
-                console.log('sitestatus:' + msg);
+               // console.log('sitestatus:' + msg);
                 update_sitestatus(msg);
             });
             socket.on('func_init', function(msg) {
-                console.log('function : ' + msg + ' initialized ');
-               switch (msg) {
+                d = JSON.parse(msg);
+               console.log('function : ' + msg + ' initialized ');
+               switch (d.func) {
                             case 'sitestatus':
                                 cleardata('sitestatus');
                                 showloading('site-loading');
-                                socket.emit('func_init',{data: msg})
+                                socket.emit('func_init',msg)
                                 break;
                             case 'm_status':
                                 hidedata('m_status');
                                 showloading('m-loading');
-                                socket.emit('func_init',{data: msg})
+                                socket.emit('func_init',msg)
                                 break;
                             case 2:
                                 
@@ -234,7 +236,7 @@
 
             });
             socket.on('status', function(msg) {
-                console.log('status:' + msg);
+               // console.log('status:' + msg);
             });
 
 

@@ -17,6 +17,7 @@ from user import User
 from collections import defaultdict
 from datetime import datetime
 from sqlalchemy.sql import func
+from sqlalchemy import desc
 try:
     from prod import config
 except:
@@ -76,14 +77,17 @@ def ret_master():
      master = db.session.query(Masterdb).first()
      return master
 
-def socket_emit(meta=None, event='others'):
+def socket_emit(meta=None, event='others',room=None):
     try:
         socketio = SocketIO(message_queue=current_app.config['SOCKETIO_REDIS_URL'])
-        socketio.emit(event, meta, namespace='/deyunio')
+        if room :
+            socketio.emit(event, meta,room=room, namespace='/deyunio')
+        else:
+            socketio.emit(event, meta, namespace='/deyunio')
     except Exception as e:
-        logger.warning('error in loading sitestatus ' + str(e))
+        logger.warning('error in emitting sitestatus to room :'+ str(room)+ '  ' + str(e))
         return {'failed': e}
-    logger.info({('sent'  + str(event)) : meta})
+    logger.info({('sent'  + str(event) + str(room)) : meta})
     return {('sent'  + str(event)) : meta}
 
 
@@ -102,8 +106,9 @@ def self_test(x=16, y=16,url=None):
     socketio.emit('connect', meta, namespace='/deyunio')
     return meta
 '''
-
+emit index page data 
 '''
+
 def get_toplogy():
     m_node = Masterdb.query.all()
     s_node = Nodedb.query.all()
@@ -134,7 +139,7 @@ def update_master_status():
             table='cpu_user', db='graphite', host=master.master_name)
         index_data = {
             'top': get_toplogy(),
-            master.master_name : {'mem':r,'cpu': p}
+            'master' : [{'all' : {'name':master.master_name,'mem':r,'cpu': p}}]
         }
     except Exception as e:
         logger.warning('error in writing master status ' + str(e))
@@ -145,15 +150,19 @@ def update_master_status():
     return {"ok":index_data}
 
 @celery.task
-def emit_master_status():
+def emit_master_status(room=None):
     try:
         data = json.loads(convert(redisapi.get('index_data')))
     except Exception as e :
         logger.warning('error in loading sitestatus ' + str(data))
         return {'failed': e}
     meta = json.dumps(data)
-    socket_emit(meta = meta, event='m_status')
-    logger.info({'ok':'emit_master_status'})
+    if room :
+        socket_emit(meta = meta, event='m_status',room=room)
+        logger.info({'ok':'emit_master_status' + str(room)})
+    else:
+        socket_emit(meta = meta, event='m_status')
+        logger.info({'ok':'emit_master_status to all'})
 
 
 
@@ -169,22 +178,39 @@ def mean_status(data):
     r =  mean([x[1] for x in j]) * 100 
     return '{:.2f}'.format(r)
 
+def spark_data():
+    ret = {}
+    a = db.session.query(Statistics.managed_nodes).order_by(desc(Statistics.update_at)).limit(8).all()
+    ret['n'] = [r for r, in a]
+    b = db.session.query(Statistics.registered_master).order_by(desc(Statistics.update_at)).limit(8).all()
+    ret['m'] = [r for r, in b]
+    return json.dumps(ret)
+
 def ret_socket_sitestatus():
     d = convert(redisapi.hgetall('sitestatus'))
     d['service_level'] = str(100.0 - float(mean_status(d['service_level'])))
     d['system_utilization'] = str(mean_status(d['system_utilization']))
+    a = db.session.query(Statistics.managed_nodes).order_by(desc(Statistics.update_at)).limit(8).all()
+    d['n'] = [r for r, in a]
+    b = db.session.query(Statistics.registered_master).order_by(desc(Statistics.update_at)).limit(8).all()
+    d['m'] = [r for r, in b]
     return d
 
 
 @celery.task
-def emit_site_status():
+def emit_site_status(room=None):
     try:
         data = ret_socket_sitestatus()
     except Exception as e :
-        logger.warning('error in loading sitestatus ')
+        logger.warning('error in loading sitestatus to '+ str(room))
         return {'failed': e}
     meta = json.dumps(data)
-    socket_emit(meta = meta, event='sitestatus')
+    if room:
+        socket_emit(meta = meta, event='sitestatus',room=room)
+        logger.info({'ok':'emit_site_status to ' + str(room)})
+    else:
+        socket_emit(meta = meta, event='sitestatus')
+        logger.info({'ok':'emit_site_status to all'})
 
 
 '''

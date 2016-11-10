@@ -6,7 +6,6 @@ import json
 
 import logging
 
-
 '''
 Client socket events.
 '''
@@ -57,12 +56,13 @@ class Socket_conn(Namespace):
         disconnect()
     
     def on_func_init(self,message):
-        data =  message['data'] 
+        #data =  message['data'] 
+        data = json.loads(message)
         if  data:
-            if data == 'sitestatus':
-              emit_site_status.delay()
-            if data == 'm_status':
-              emit_master_status.delay()
+            if data['func'] == 'sitestatus':
+              emit_site_status.delay(room=data['room'])
+            if data['func'] == 'm_status':
+              emit_master_status.delay(room=data['room'])
 
 
 
@@ -70,15 +70,16 @@ class Socket_conn(Namespace):
         pass
 
     def on_connect(self):
-        current_app.logger.info('@sid:' + str(session.session_id) + ':connected')
 
         #All client joined the 
         #join_room('1')
-
+        session['room'] = request.sid
+        current_app.logger.info('@sid:' + str(session.session_id) + ':connected '+'room: '+ session['room'])
         emit('status', json.dumps({'status': 'Connected user', 'userid': session.session_id}))
         #self_test.delay(url = url_for('frontend.test', _external=True))
-        emit('func_init','sitestatus')
-        emit('func_init','m_status')
+        emit('func_init',json.dumps({'func': 'sitestatus', 'room': session['room']}))
+        #emit('func_init','sitestatus')
+        emit('func_init',json.dumps({'func': 'm_status', 'room': session['room']}))
         #emit('job started')
         #global thread
         #if thread is None:

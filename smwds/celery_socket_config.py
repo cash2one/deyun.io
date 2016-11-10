@@ -12,16 +12,17 @@ CELERY_BACKEND = 'redis://localhost:6379/5'
 
 # Celery task to sync between CMDB and monitor DB
 CELERYBEAT_SCHEDULE = {
-    'add-every-300-seconds': {
-        'task': 'celery_task_socket.update_master_status',
-#        'task': 'celery_task_socket.statistics_page_visit',
-#        'task': 'celery_task_socket.statistics_sync',
-#        'task': 'celery_task_socket.statistics_update',
+    'statistics_sync_30_seconds': {
+        'task': 'celery_task_socket.statistics_sync',
 #        'task': 'celery_task_socket.statistics_update',
 #        'task': 'celery_task_socket.salt_minion_status',
 #        'task': 'celery_task_socket.salt_nodes_sync',
         'schedule': timedelta(seconds=30)
-#    },
+    },
+    'update_master_status_30_seconds': {
+        'task': 'celery_task_socket.update_master_status',
+        'schedule': timedelta(seconds=30)
+        }
 #    'add-every-3600-seconds': {
 #        'task': 'celery_task_socket.salt_nodes_sync',
 #        'task': 'celery_task_socket.sync_cpu_from_influxdb',
@@ -33,8 +34,8 @@ CELERYBEAT_SCHEDULE = {
 #        'task': 'celery_task_socket.sync_process_from_influxdb',
 #        'task': 'celery_task_socket.sync_netif_from_influxdb',
 #        'task': 'celery_task_socket.sync_ping_from_influxdb',
-#        'schedule': timedelta(seconds=3600)
-    }
+#        'schedule': timedelta(seconds=3600)}
+    
 }
 
 CELERY_TIMEZONE = 'UTC'
