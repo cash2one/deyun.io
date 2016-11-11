@@ -4,7 +4,7 @@ from datetime import timedelta
 
 BROKER_URL = 'redis://localhost:6379/5'
 CELERY_BACKEND = 'redis://localhost:6379/5'
-
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 #Do not use json until all seriailzer has been deployed
 #CELERY_TASK_SERIALIZER='json'
 #CELERY_ACCEPT_CONTENT=['json']
@@ -12,16 +12,25 @@ CELERY_BACKEND = 'redis://localhost:6379/5'
 
 # Celery task to sync between CMDB and monitor DB
 CELERYBEAT_SCHEDULE = {
-    'statistics_sync_30_seconds': {
-        'task': 'celery_task_socket.statistics_sync',
-#        'task': 'celery_task_socket.statistics_update',
-#        'task': 'celery_task_socket.salt_minion_status',
-#        'task': 'celery_task_socket.salt_nodes_sync',
-        'schedule': timedelta(seconds=30)
-    },
-    'update_master_status_30_seconds': {
-        'task': 'celery_task_socket.update_master_status',
-        'schedule': timedelta(seconds=30)
+    'db_statistics_sync': {
+        'task': 'celery_task_socket.db_statistics_sync',
+        'schedule': timedelta(seconds=112)
+        },
+    'db_salt_nodes_sync': {
+        'task': 'celery_task_socket.db_salt_nodes_sync',
+        'schedule': timedelta(seconds=105)
+        },
+    'redis_master_status_update': {
+        'task': 'celery_task_socket.redis_master_status_update',
+        'schedule': timedelta(seconds=36)
+        },
+    'redis_statistics_update': {
+        'task': 'celery_task_socket.redis_statistics_update',
+        'schedule': timedelta(seconds=35)
+        },
+    'redis_salt_minion_status_update': {
+        'task': 'celery_task_socket.redis_salt_minion_status_update',
+        'schedule': timedelta(seconds=37)
         }
 #    'add-every-3600-seconds': {
 #        'task': 'celery_task_socket.salt_nodes_sync',

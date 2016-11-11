@@ -130,7 +130,7 @@ def get_toplogy():
 
 
 @celery.task
-def update_master_status():
+def redis_master_status_update():
     try:
         master = Masterdb.query.first()
         r = indbapi.ret_point_24h(
@@ -139,7 +139,7 @@ def update_master_status():
             table='cpu_user', db='graphite', host=master.master_name)
         index_data = {
             'top': get_toplogy(),
-            'master' : [{'all' : {'name':master.master_name,'mem':r,'cpu': p}}]
+             'master' : {'name':master.master_name,'mem':r,'cpu': p}
         }
     except Exception as e:
         logger.warning('error in writing master status ' + str(e))
@@ -279,7 +279,7 @@ Celery function description
 '''
 @celery.task
 @salt_command
-def salt_minion_status():
+def redis_salt_minion_status_update():
     try:
         ret = saltapi.runner('manage.status')
         result = []
@@ -293,7 +293,9 @@ def salt_minion_status():
                 count += redisapi.hset(name='status', key=node, value='down')
                 result.append(node)
     except Exception as e:
+        logger.warning('error in updaing minion status in redis :' + str(e))
         return {'failed': e}
+    logger.info('minion status updated')
     return {'ok': str(result) + ' updated with redis return: ' + str(count)}
 
 
@@ -371,7 +373,7 @@ this task based on the result of salt_minion_status, may return none
 
 @celery.task
 @salt_command
-def salt_nodes_sync():
+def db_salt_nodes_sync():
     result = []
     count = 0
     data = redisapi.hgetall(name='status')
@@ -846,7 +848,7 @@ Update statistics hash in redis
 '''
 
 @celery.task
-def statistics_sync():
+def db_statistics_sync():
     result = []
     data = convert(redisapi.hgetall(name='sitestatus'))
     if not data:
@@ -869,7 +871,7 @@ def statistics_sync():
         db.session.commit()
         result.append(state)
     except Exception as e:
-        logger.warning('error in creating data in statistics')
+        logger.warning('error in creating data in statistics :' + str(e))
         return {'failed': e}
     logger.info('Completed in writing data to statistics' + str(result))
     return {'successed': result}
@@ -908,25 +910,25 @@ def statistics_api_visit():
 
 
 @celery.task
-def statistics_update():
+def redis_statistics_update():
     try:
         redisapi.hset('sitestatus', 'managed_nodes', Nodedb.get_count())
-        redisapi.hset('sitestatus', 'system_capacity', session.query(
+        redisapi.hset('sitestatus', 'system_capacity', db.session.query(
             func.sum(Nodedb.core).label('average')).all()[0][0])
-        redisapi.hset('sitestatus', 'system_utilization', json.dumps(session.query(
+        redisapi.hset('sitestatus', 'system_utilization', json.dumps(db.session.query(
             Perf_System_Load.node_name, func.avg(
                 Perf_System_Load.load_avg_fifteen).label('average')
         ).group_by('node_name').all()))
         redisapi.hset('sitestatus', 'user_count', User.get_count())
         redisapi.hset('sitestatus', 'registered_master', Masterdb.get_count())
         redisapi.hset('sitestatus', 'total_task', 0)
-        redisapi.hset('sitestatus', 'service_level', json.dumps(session.query(
+        redisapi.hset('sitestatus', 'service_level', json.dumps(db.session.query(
             Perf_Ping.node_name, func.avg(
                 Perf_Ping.ping_packet_loss).label('average')
         ).group_by('node_name').all()))
-        redisapi.hset('sitestatus', 'uptime', (datetime.utcnow() - session.query(
+        redisapi.hset('sitestatus', 'uptime', (datetime.utcnow() - db.session.query(
             Masterdb.create_at).first()[0]).days)
     except Exception as e:
-        logger.warning('error in writing sitestatus ')
+        logger.warning('error in writing sitestatus '+ str(e))
         return {'failed': e}
     logger.info('Completed in updating site status')

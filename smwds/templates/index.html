@@ -139,7 +139,7 @@
                                 <div class="m-t-md">
                                     <small id="monitor_date" class="pull-right">
                                         <i class="fa fa-clock-o"> </i>
-                                        Update on 16.07.2015
+                                        Last Update: 16.07.2015
                                     </small>
                                     <small>
                                         <strong id="master">Master Name</strong>
@@ -249,28 +249,44 @@
 
                 console.log(l_data);
                 console.log(m_data);
+                document.getElementById('master').innerHTML = 'Master Name :' + m_name;
+                document.getElementById('monitor_date').innerHTML = 'Last Update:' + Date();
                 var lineData = {
                     //labels: ["label 1", "label 2", "label 3", "label 4", "label 5", "label 6", "label 7"],
                 labels:  l_data[1],
                   datasets: [
                        {
                            label: "CPU",
+                           backgroundColor: "rgba(220,220,220,0.5)",
+                           borderColor: "rgba(220,220,220,1)",
+                           pointBorderColor: "rgba(220,220,220,1)",
+                           pointBackgroundColor:"#fff",
+                           pointHoverBackgroundColor:  "#fff",
+                           pointHoverBorderColor:"rgba(220,220,220,1)",
+                           /*
                            fillColor: "rgba(220,220,220,0.5)",
                            strokeColor: "rgba(220,220,220,1)",
                            pointColor: "rgba(220,220,220,1)",
                            pointStrokeColor: "#fff",
                            pointHighlightFill: "#fff",
                            pointHighlightStroke: "rgba(220,220,220,1)",
+                           */
                            data: l_data[0]
                        },
                        {
                            label: "MEM",
-                           fillColor: "rgba(26,179,148,0.5)",
+                           backgroundColor: "rgba(26,179,148,0.5)",
+                           borderColor: "rgba(26,179,148,0.7)",
+                           pointBorderColor: "rgba(26,179,148,1)",
+                           pointBackgroundColor:"#fff",
+                           pointHoverBackgroundColor:  "#fff",
+                           pointHoverBorderColor:"rgba(26,179,148,1)",
+                           /*fillColor: "rgba(26,179,148,0.5)",
                            strokeColor: "rgba(26,179,148,0.7)",
                            pointColor: "rgba(26,179,148,1)",
                            pointStrokeColor: "#fff",
                            pointHighlightFill: "#fff",
-                           pointHighlightStroke: "rgba(26,179,148,1)",
+                           pointHighlightStroke: "rgba(26,179,148,1)",*/
                            data: m_data[0]
                        }
                    ]
