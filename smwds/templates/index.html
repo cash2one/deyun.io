@@ -250,11 +250,31 @@
 
             });  
 
+           socket.on('hackerlist',function(msg){
+            console.log('hackerList:'+msg);
+            update_hacklist(msg);
+           });
+        function update_hacklist(m){
+            msg = JSON.parse(m);
+            console.log(msg);
+            switch (msg.type){
+                case 'info':
+                    var nhlvalues = [
+                  { id:hlid++,emit_msg: msg.emit_msg, emit_time: '<i class="emit_time fa fa-at"> ' + Date() + '</i>'}
+                    ];
+            }
+
+            hackerList.add(nhlvalues);
+            hackerList.sort('id', { order: 'desc' });
+            document.getElementById('hacker-list').getElementsByTagName('li')[0].className = "animated bounceInUp info-element";
+            
+        };
+
         function update_m_status(j){
                 //console.log(j);
 
                 data = JSON.parse(j);
-                console.log(data);
+                //console.log(data);
                 var c_data = data.master;
                 var m_name = c_data.name;
                 var l_data = c_data.cpu;
@@ -263,11 +283,11 @@
                 showdata('m_status');
                 hideloading('m-loading');
                 cy.load(n_data);
-                console.log(c_data);
-                console.log(m_name);
+               // console.log(c_data);
+                //console.log(m_name);
 
-                console.log(l_data);
-                console.log(m_data);
+                //console.log(l_data);
+                //console.log(m_data);
                 document.getElementById('master').innerHTML = 'Master Name :' + m_name;
                 document.getElementById('monitor_date').innerHTML = 'Last Update:' + Date();
                 var lineData = {
@@ -381,19 +401,29 @@
                            ]
                         
                         });
-
+                var hlid = 0;
                 var hloptions = {
-                  valueNames: [ 'emit_msg', 'emit_time' ],
-                  item: '<li class="warning-element" ><p class="emit_msg"></p><div class="agile-detail emit_time"></div></li>'
+                  valueNames: [ 'emit_msg', 'emit_time',{ data: ['id'] } ],
+                 // item: '<li class="warning-element animated fadeInUp" ><p class="emit_msg"></p><div  class="agile-detail emit_time"></div></li>'
+                 item: '<li data-id="1" class=" animated bounceInUp " ><p class="emit_msg"></p><div  class="agile-detail emit_time"></div></li>'
                 };
                 
-                
+                //warning-element info-element success-element
                 var hlvalues = [
-                  { emit_msg: 'Test Message TESTTSES TESTESTSETSD TESSDTST TESTSTEEST  ESTSETEST  ESTSETES ESTTEST  ESTESTSET ESTTESTEST ESTESTSET TERDSTESTEST', emit_time: '<i class="emit_time fa fa-clock-o">12.10.2015</i>'}
+                  { id:hlid++,emit_msg: 'System initialization completed', emit_time: '<i class="fa fa-warning"> ' + Date() + '</i>'}
                 ];
                 
-                var hackerList = new List('hacker-list', hloptions, hlvalues);              
-
+                var hackerList = new List('hacker-list', hloptions); 
+               $('#hacker-list').click(function() {
+                hackerList.add([{ id:hlid++,emit_msg: 'System initialization completed', emit_time: '<i class="fa fa-warning"> ' + Date() + '</i>'}]);  
+                hackerList.sort('id', { order: 'desc' });
+               ///console.log(hackerList.search());
+               console.log(document.getElementById('hacker-list').getElementsByTagName('li')[0]);
+               console.log(hlid);
+                document.getElementById('hacker-list').getElementsByTagName('li')[0].className = "animated bounceInUp warning-element";
+                });
+                   
+                ///fa-warning fa-wrench fa-user fa-sitemap
 /*
             var d1 = [[1262304000000, 6], [1264982400000, 3057], [1267401600000, 20434], [1270080000000, 31982], [1272672000000, 26602], [1275350400000, 27826], [1277942400000, 24302], [1280620800000, 24237], [1283299200000, 21004], [1285891200000, 12144], [1288569600000, 10577], [1291161600000, 10295]];
             var d2 = [[1262304000000, 5], [1264982400000, 200], [1267401600000, 1605], [1270080000000, 6129], [1272672000000, 11643], [1275350400000, 19055], [1277942400000, 30062], [1280620800000, 39197], [1283299200000, 37000], [1285891200000, 27000], [1288569600000, 21000], [1291161600000, 17000]];

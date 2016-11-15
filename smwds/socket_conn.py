@@ -61,8 +61,10 @@ class Socket_conn(Namespace):
         if  data:
             if data['func'] == 'sitestatus':
               emit_site_status.delay(room=data['room'])
+              emit('hackerlist',json.dumps({'emit_msg':'initialized sitestatus','type':'info'}),room=data['room'])
             if data['func'] == 'm_status':
               emit_master_status.delay(room=data['room'])
+              emit('hackerlist',json.dumps({'emit_msg':'initialized m_status','type':'info'}),room=data['room'])
 
 
 
