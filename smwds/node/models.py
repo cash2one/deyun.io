@@ -10,6 +10,54 @@ from utils import get_current_time
 from api.models import Masterdb, Nodedb
 from constants import STRING_LEN
 
+class Tasks(db.Model):
+    __tablename__ = 'task'
+
+    def __repr__(self):
+        return '<task %r>' % self.task_name
+
+
+    id = Column(db.Integer, primary_key=True)
+    node_id = Column(UUIDType(binary=False), db.ForeignKey('nodedb.id'))
+    node = db.relationship('Nodedb', backref='tasks')
+    update_at = Column(db.DateTime,nullable=False, default=get_current_time)
+    task_name = Column(db.String(255), nullable=False,unique=False, index=True)
+    command = Column(db.String(STRING_LEN), nullable=False, default="None")
+    require = Column(JSONType(10000),nullable=False, default='')
+    module = Column(JSONType(10000),nullable=False, default='')
+    timeout = Column(db.Integer, nullable=False, default=0)
+
+    @classmethod
+    def get_count(cls):
+        count_q = cls.query.statement.with_only_columns([func.count()]).order_by(None)
+        count = db.session.execute(count_q).scalar()
+        return count
+
+
+class Task_Result(db.Model):
+
+    __tablename__ = 'task_result'
+
+    def __repr__(self):
+        return '<task_result %r>' % self.task_name
+
+    id = Column(db.Integer, primary_key=True)
+    task_id = Column(db.Integer, db.ForeignKey('task.id'))
+    task = db.relationship('Tasks', backref='task_result')
+    start_at = Column(db.DateTime,nullable=False, default=get_current_time)
+    end_at = Column(db.DateTime,nullable=False, default=get_current_time)
+    task_name = Column(db.String(255), nullable=False,unique=False, index=True)
+    result = Column(db.String(STRING_LEN), nullable=False, default="None")
+    run_at = Column(db.String(STRING_LEN), nullable=False, default="None")   
+    status = Column(db.String(STRING_LEN), nullable=False, default="None")
+
+    @classmethod
+    def get_count(cls):
+        count_q = cls.query.statement.with_only_columns([func.count()]).order_by(None)
+        count = db.session.execute(count_q).scalar()
+        return count
+
+
 
 class Statistics(db.Model):
 

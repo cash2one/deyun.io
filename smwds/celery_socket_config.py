@@ -14,23 +14,23 @@ CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 CELERYBEAT_SCHEDULE = {
     'db_statistics_sync': {
         'task': 'celery_task_socket.db_statistics_sync',
-        'schedule': timedelta(seconds=112)
+        'schedule': timedelta(seconds=1120)
         },
     'db_salt_nodes_sync': {
         'task': 'celery_task_socket.db_salt_nodes_sync',
-        'schedule': timedelta(seconds=105)
+        'schedule': timedelta(seconds=1050)
         },
     'redis_master_status_update': {
         'task': 'celery_task_socket.redis_master_status_update',
-        'schedule': timedelta(seconds=36)
+        'schedule': timedelta(seconds=10)
         },
     'redis_statistics_update': {
         'task': 'celery_task_socket.redis_statistics_update',
-        'schedule': timedelta(seconds=35)
+        'schedule': timedelta(seconds=350)
         },
     'redis_salt_minion_status_update': {
         'task': 'celery_task_socket.redis_salt_minion_status_update',
-        'schedule': timedelta(seconds=37)
+        'schedule': timedelta(seconds=370)
         }
 #    'add-every-3600-seconds': {
 #        'task': 'celery_task_socket.salt_nodes_sync',

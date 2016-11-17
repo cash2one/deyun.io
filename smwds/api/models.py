@@ -82,10 +82,20 @@ class Masterdb(db.Model):
             total = query.order_by(None).count()
 
         return Pagination(query, page, per_page, total, items)
-
+'''
+Tag = server role
+'''
 
 class Tag(db.Model):
-    id = Column(UUIDType(binary=False), primary_key=True)
+
+    __tablename__ = 'tag'
+
+    def __repr__(self):
+        return '<Tag %r>' % self.name
+
+    id = Column(db.Integer, primary_key=True)
+    node_id = Column(UUIDType(binary=False), db.ForeignKey('nodedb.id'))
+    node = db.relationship('Nodedb', backref='tags',foreign_keys="Tag.node_id")
     name = Column(db.String(STRING_LEN), nullable=False,
                   default='', info={'verbose_name': u'名称', })
     type = Column(db.String(STRING_LEN), nullable=False,

@@ -170,7 +170,7 @@
                     <div class="col-lg-4">
                         <div class="ibox float-e-margins">
                             <div class="ibox-title">
-                                <span class="label label-warning pull-right">New Warning</span>
+                                <!--<span class="label label-warning pull-right">New Warning</span>-->
                                 <h5>System activity</h5>
                             </div>
                             
@@ -220,6 +220,8 @@
                                         <i class="fa fa-clock-o"></i> 16.11.2015
                                     </div>
                                 </li>-->
+                            </ul>
+                            <ul class="pagination"></ul>
                             </div>
                             
                         </div>
@@ -256,18 +258,51 @@
            });
         function update_hacklist(m){
             msg = JSON.parse(m);
-            console.log(msg);
+            //console.log(msg);
             switch (msg.type){
                 case 'info':
-                    var nhlvalues = [
-                  { id:hlid++,emit_msg: msg.emit_msg, emit_time: '<i class="emit_time fa fa-at"> ' + Date() + '</i>'}
+                var nhlvalues = [
+                  { id:hlid++,emit_msg: '<i class="fa fa-sitemap"></i> ' + msg.emit_msg, emit_time: '<i class="emit_time fa fa-at"> ' + Date() + '</i>'}
                     ];
+                     break;
+                case 'warning':
+                var nhlvalues = [
+                  { id:hlid++,emit_msg: '<i class="fa fa-warning"></i> ' + msg.emit_msg, emit_time: '<i class="emit_time fa fa-at"> ' + Date() + '</i>'}
+                    ];
+                     break;
+                case 'success':
+                var nhlvalues = [
+                  { id:hlid++,emit_msg: '<i class="fa fa-user"></i> ' + msg.emit_msg, emit_time: '<i class="emit_time fa fa-at"> ' + Date() + '</i>'}
+                    ];
+                     break;
             }
-
+            //var nhlvalues = [
+             //     { id:hlid++,emit_msg: msg.emit_msg, emit_time: '<i class="emit_time fa fa-at"> ' + Date() + '</i>'}
+              //      ];
             hackerList.add(nhlvalues);
             hackerList.sort('id', { order: 'desc' });
-            document.getElementById('hacker-list').getElementsByTagName('li')[0].className = "animated bounceInUp info-element";
-            
+            var listone = document.getElementById('hacker-list').getElementsByTagName('li')[0];
+            switch (msg.type){
+                case 'info':
+                    listone.className = "animated bounceInUp info-element";
+                    setTimeout(function(){
+                      listone.className = "animated bounce info-element";
+                         },100);
+                     break;
+                case 'warning':
+                     listone.className = "animated bounceInUp warning-element";
+                    setTimeout(function(){
+                        listone.className = "animated bounce warning-element";
+                           },100);
+                     break;
+                case 'success':
+                     listone.className = "animated bounceInUp success-element";
+                    setTimeout(function(){
+                        listone.className = "animated bounce success-element";
+                           },100);
+                     break;
+
+            };
         };
 
         function update_m_status(j){
@@ -405,7 +440,11 @@
                 var hloptions = {
                   valueNames: [ 'emit_msg', 'emit_time',{ data: ['id'] } ],
                  // item: '<li class="warning-element animated fadeInUp" ><p class="emit_msg"></p><div  class="agile-detail emit_time"></div></li>'
-                 item: '<li data-id="1" class=" animated bounceInUp " ><p class="emit_msg"></p><div  class="agile-detail emit_time"></div></li>'
+                 item: '<li data-id="1" class=" animated bounceInUp " ><p class="emit_msg"></p><div  class="agile-detail emit_time"></div></li>',
+                 page:6,
+                 plugins: [
+                       ListPagination({})
+                     ]
                 };
                 
                 //warning-element info-element success-element
@@ -414,13 +453,21 @@
                 ];
                 
                 var hackerList = new List('hacker-list', hloptions); 
+                hackerList.on('sortComplete',function(){
+                  //  console.log('sort completed.');
+                });
                $('#hacker-list').click(function() {
-                hackerList.add([{ id:hlid++,emit_msg: 'System initialization completed', emit_time: '<i class="fa fa-warning"> ' + Date() + '</i>'}]);  
+                hackerList.add([{ id:hlid++,emit_msg: '<i class="fa fa-warning"></i> System initialization completed', emit_time: '<i class="fa fa-warning"> ' + Date() + '</i>'}]);  
                 hackerList.sort('id', { order: 'desc' });
                ///console.log(hackerList.search());
-               console.log(document.getElementById('hacker-list').getElementsByTagName('li')[0]);
-               console.log(hlid);
+               //console.log(document.getElementById('hacker-list').getElementsByTagName('li')[0]);
+              // console.log(hlid);
                 document.getElementById('hacker-list').getElementsByTagName('li')[0].className = "animated bounceInUp warning-element";
+                setTimeout(function(){
+                 document.getElementById('hacker-list').getElementsByTagName('li')[0].className = "animated bounce warning-element";
+                }
+                    , 100);
+
                 });
                    
                 ///fa-warning fa-wrench fa-user fa-sitemap
@@ -561,7 +608,7 @@
                             });
 
 
-            $('.footable2').footable();
+            /*$('.footable2').footable();
 
             $('.footable2').footable().bind({
                   'footable_filtering' : function(e) {
@@ -594,7 +641,7 @@
                                 
                                 footableFilter.filter(search_text);
                             
-                            });
+                            });*/
 
         });
         

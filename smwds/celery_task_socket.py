@@ -72,6 +72,7 @@ Celery function description
 
 ### END ###
 '''
+socketio = SocketIO(message_queue='redis://localhost:6379/0')
 
 def ret_master():
      master = db.session.query(Masterdb).first()
@@ -79,15 +80,15 @@ def ret_master():
 
 def socket_emit(meta=None, event='others',room=None):
     try:
-        socketio = SocketIO(message_queue=current_app.config['SOCKETIO_REDIS_URL'])
         if room :
             socketio.emit(event, meta,room=room, namespace='/deyunio')
         else:
-            socketio.emit(event, meta, namespace='/deyunio')
+            room='all'
+            socketio.emit(event, meta,room='all',namespace='/deyunio')
     except Exception as e:
         logger.warning('error in emitting sitestatus to room :'+ str(room)+ '  ' + str(e))
         return {'failed': e}
-    logger.info({('sent'  + str(event) + str(room)) : meta})
+    logger.info({('sent '  + str(event)+ ' to ' + str(room)) : meta})
     return {('sent'  + str(event)) : meta}
 
 
@@ -104,6 +105,7 @@ def self_test(x=16, y=16,url=None):
     #post(url, json=meta)
     socketio = SocketIO(message_queue='redis://localhost:6379/0')
     socketio.emit('connect', meta, namespace='/deyunio')
+    #socketio.emit(event='hackerlist',meta=son.dumps({'emit_msg':'self test finished','type':'success'}))
     return meta
 '''
 emit index page data 
@@ -142,11 +144,14 @@ def redis_master_status_update():
              'master' : {'name':master.master_name,'mem':r,'cpu': p}
         }
     except Exception as e:
-        logger.warning('error in writing master status ' + str(e))
-        return {'failed':e}
+        logger.warning('error in writing master status ' + str(e)+' data:' + index_data)
+        return {'failed':index_data}
     else:
         redisapi.set('index_data', json.dumps(index_data))
+
+        emit_master_status.delay(room='all')
     logger.info({'ok':index_data})
+    socket_emit(meta=json.dumps({'emit_msg':'redis status updated','type':'success'}),event='hackerlist')
     return {"ok":index_data}
 
 @celery.task
@@ -154,11 +159,12 @@ def emit_master_status(room=None):
     try:
         data = json.loads(convert(redisapi.get('index_data')))
     except Exception as e :
-        logger.warning('error in loading sitestatus ' + str(data))
+        logger.warning('error in loading index_data ' + str(data))
         return {'failed': e}
     meta = json.dumps(data)
     if room :
         socket_emit(meta = meta, event='m_status',room=room)
+        #socket_emit(meta=json.dumps({'emit_msg':'master status updated','type':'success'}),event='hackerlist',room=room)
         logger.info({'ok':'emit_master_status' + str(room)})
     else:
         socket_emit(meta = meta, event='m_status')
@@ -932,3 +938,4 @@ def redis_statistics_update():
         logger.warning('error in writing sitestatus '+ str(e))
         return {'failed': e}
     logger.info('Completed in updating site status')
+    emit_site_status.delay(room='all')

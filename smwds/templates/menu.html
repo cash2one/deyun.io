@@ -203,7 +203,7 @@
                 console.log('I\'m connected! :' + msg);
             });
             socket.on('sitestatus', function(msg) {
-               // console.log('sitestatus:' + msg);
+                console.log('sitestatus:' + msg);
                 update_sitestatus(msg);
             });
             socket.on('func_init', function(msg) {
