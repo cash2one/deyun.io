@@ -15,6 +15,7 @@
     <!--<link href="css/plugins/dataTables/datatables.min.css" rel="stylesheet">-->
     <!-- FooTable -->
     <link href="css/plugins/footable/footable.core.css" rel="stylesheet">
+    <!--<link href="js/plugins/footable-bootstrap.latest/css/footable.bootstrap.min.css" rel="stylesheet">-->
 
 </head>
 
@@ -121,6 +122,7 @@
 
     <!--<script src="js/plugins/dataTables/datatables.min.js"></script>-->
     <script src="js/plugins/footable/footable.all.min.js"></script>
+    <!--<script src="js/plugins/footable-bootstrap.latest/js/footable.min.js"></script>-->
     <!--raphael and cloudrelation-->
     <script src="js/plugins/cloudrelation/raphael.js"></script>
 
@@ -146,57 +148,6 @@
     
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
-            /*function cleardata(e)
-            { 
-                data = document.getElementsByClassName(e);
-                for( var i = 0; i < data.length; i++) { data[i].innerHTML = ""};             
-
-
-            }
-            function hidedata(e)
-            { 
-                data = document.getElementsByClassName(e);
-                for( var i = 0; i < data.length; i++) { data[i].style.visibility = "hidden"};
-            }
-            function showdata(e)
-            { 
-
-                data = document.getElementsByClassName(e);
-                for( var i = 0; i < data.length; i++) { data[i].style.visibility = "visible"};
-            }
-            function hideloading(e)
-            { 
-
-                data = document.getElementsByClassName(e);
-                for( var i = 0; i < data.length; i++) {
-                data[i].style.visibility = "hidden";
-                data[i].style.animationPlayState = "paused";
-                    };
-            }
-            function showloading(e)
-            { 
-                data = document.getElementsByClassName(e);
-                for( var i = 0; i < data.length; i++) {
-                data[i].style.visibility = "visible";
-                data[i].style.animationPlayState = "running";
-                    };
-            }*/
-            /*
-            function update_sitestatus(j){
-                ///console.log(j);
-                data = JSON.parse(j);
-                document.getElementById('node').innerHTML = data.managed_nodes;
-                document.getElementById('sc').innerHTML =  data.system_capacity;
-                document.getElementById('su').innerHTML =  data.system_utilization + '%';
-                document.getElementById('user').innerHTML =  data.user_count;
-                document.getElementById('mm').innerHTML =  data.registered_master;
-                document.getElementById('task').innerHTML =  data.total_task;
-                document.getElementById('sl').innerHTML =  data.service_level + '%';
-                document.getElementById('up').innerHTML = data.uptime + 'd';
-                hideloading('site-loading');
-
-            }*/
-            ///node sc su  user mm task sl up 
         
             socket.on('connect', function(msg) {
                 socket.emit('my_event', {data: 'I\'m connected!'});
@@ -220,8 +171,10 @@
                                 showloading('m-loading');
                                 socket.emit('func_init',msg)
                                 break;
-                            case 2:
-                                
+                            case 'nodelist':
+                                hidedata('nodelist');
+                                showloading('node-loading');
+                                socket.emit('func_init',msg)
                                 break;
                             case 3:
                                 

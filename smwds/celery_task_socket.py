@@ -1,10 +1,16 @@
- #!/usr/bin/python
-#coding:utf-8
+#!/usr/bin/python
+# coding:utf-8
 
 
 from celery import Celery, platforms
 from flask import Flask, current_app
-import random, time, json, redis, time, logging, base64
+import random
+import time
+import json
+import redis
+import time
+import logging
+import base64
 from celery.signals import task_prerun
 from datetime import timedelta
 from celery.schedules import crontab
@@ -24,15 +30,14 @@ except:
     pass
 from functools import wraps
 from utils import convert
-from extensions import celery,db
+from extensions import celery, db
 from requests import post
 from flask_socketio import SocketIO
 from statistics import mean
 
 #import app
 #tapp,session = app.create_socket_celery()
-#celery.init_app(tapp)
-
+# celery.init_app(tapp)
 
 
 celery.config_from_object('celery_socket_config')
@@ -42,7 +47,7 @@ logger.setLevel(20)
 #celery, session = create_celery_app()
 
 #celery.config_from_object('prod', silent=True)
-#load config from celery_config.py , store other api information in prod.py
+# load config from celery_config.py , store other api information in prod.py
 
 
 indbapi = Indb(config['INDB_HOST'] + ':' + config['INDB_PORT'])
@@ -50,16 +55,17 @@ indbapi = Indb(config['INDB_HOST'] + ':' + config['INDB_PORT'])
 sensuapi = SensuAPI(config['SENSU_HOST'] + ':' + config['SENSU_PORT'])
 
 #master = session.query(Masterdb).first()
-#try:
+# try:
 #    saltapi = Pepper(master.ret_api())
 #    user = master.username
 #    pawd = convert(base64.b64decode(master.password))
-#except:
+# except:
 saltapi = Pepper(config['SALTAPI_HOST'])
 user = config['SALTAPI_USER']
 pawd = config['SALTAPI_PASS']
 
-redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config['REDIS_PORT'], db=config['REDIS_DB'])
+redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config[
+                             'REDIS_PORT'], db=config['REDIS_DB'])
 
 
 '''
@@ -74,26 +80,29 @@ Celery function description
 '''
 socketio = SocketIO(message_queue='redis://localhost:6379/0')
 
-def ret_master():
-     master = db.session.query(Masterdb).first()
-     return master
 
-def socket_emit(meta=None, event='others',room=None):
+def ret_master():
+    master = db.session.query(Masterdb).first()
+    return master
+
+
+def socket_emit(meta=None, event='others', room=None):
     try:
-        if room :
-            socketio.emit(event, meta,room=room, namespace='/deyunio')
+        if room:
+            socketio.emit(event, meta, room=room, namespace='/deyunio')
         else:
-            room='all'
-            socketio.emit(event, meta,room='all',namespace='/deyunio')
+            room = 'all'
+            socketio.emit(event, meta, room='all', namespace='/deyunio')
     except Exception as e:
-        logger.warning('error in emitting sitestatus to room :'+ str(room)+ '  ' + str(e))
+        logger.warning('error in emitting sitestatus to room :' +
+                       str(room) + '  ' + str(e))
         return {'failed': e}
-    logger.info({('sent '  + str(event)+ ' to ' + str(room)) : meta})
-    return {('sent'  + str(event)) : meta}
+    logger.info({('sent ' + str(event) + ' to ' + str(room)): meta})
+    return {('sent' + str(event)): meta}
 
 
 @celery.task
-def self_test(x=16, y=16,url=None):
+def self_test(x=16, y=16, url=None):
     x = int(x)
     y = int(y)
     res = x + y
@@ -101,7 +110,7 @@ def self_test(x=16, y=16,url=None):
     result = "add((x){}, (y){})".format(context['x'], context['y'])
     goto = "{}".format(context['id'])
     time.sleep(10)
-    meta = json.dumps({'result':result, 'goto':goto})
+    meta = json.dumps({'result': result, 'goto': goto})
     #post(url, json=meta)
     socketio = SocketIO(message_queue='redis://localhost:6379/0')
     socketio.emit('connect', meta, namespace='/deyunio')
@@ -110,6 +119,57 @@ def self_test(x=16, y=16,url=None):
 '''
 emit index page data 
 '''
+
+
+@celery.task
+def redis_update_nodelist():
+    try:
+        result = []
+        data = {}
+        node_data = Nodedb.query.all()
+        for q in node_data:
+            taglist = []
+            for x in q.tags:
+                taglist.append(
+                    '<button class="btn btn-' + x.type + ' btn-circle" type="button"  data-container="body" data-toggle="popover" data-placement="top" data-content="' + x.name + '" data-original-title="" title=""><i class="' + x.url + '"></i></button>')
+            data['Name'] = q.node_name
+            data['Tag'] = taglist
+            data['status'] = q.status
+            data['Type'] = q.os
+            data['Information'] = q.cpu + ' ' + q.mem + 'M'
+            data['Note'] = q.bio
+            data['Operator'] = q.master.master_name
+            data['Date'] = str(q.create_at)
+            data['Task'] = [x.task_name for x in q.tasks]
+            result.append(data)
+            data = {}
+        meta = json.dumps(result)
+    except Exception as e:
+        logger.warning('error in syncing nodelist ' + str(meta))
+        return {'failed': e}
+    else:
+        redisapi.set('node_list', meta)
+        logger.info('redis node list updated' + str(meta))
+        return {'ok': 'redis node list updated'}
+
+
+@celery.task
+def emit_nodelist(room=None):
+    try:
+        data = json.loads(convert(redisapi.get('node_list')))
+    except Exception as e:
+        logger.warning('error in loading index_data ' + str(data))
+        return {'failed': e}
+
+    meta = json.dumps(data)
+    if room:
+        socket_emit(meta=meta, event='nodelist', room=room)
+        #socket_emit(meta=json.dumps({'emit_msg':'master status updated','type':'success'}),event='hackerlist',room=room)
+        logger.info({'ok': 'emit_master_status' + str(room)})
+    else:
+        socket_emit(meta=meta, event='nodelist')
+        logger.info({'ok': 'emit_master_status to all'})
+
 
 def get_toplogy():
     m_node = Masterdb.query.all()
@@ -127,7 +187,7 @@ def get_toplogy():
         'nodes': node_list,
         'edges': edge_list
     }
-    logger.info({'ok':'get_toplogy'})
+    logger.info({'ok': 'get_toplogy'})
     return json.dumps(data)
 
 
@@ -141,64 +201,73 @@ def redis_master_status_update():
             table='cpu_user', db='graphite', host=master.master_name)
         index_data = {
             'top': get_toplogy(),
-             'master' : {'name':master.master_name,'mem':r,'cpu': p}
+            'master': {'name': master.master_name, 'mem': r, 'cpu': p}
         }
     except Exception as e:
-        logger.warning('error in writing master status ' + str(e)+' data:' + index_data)
-        return {'failed':index_data}
+        logger.warning('error in writing master status ' +
+                       str(e) + ' data:' + index_data)
+        return {'failed': index_data}
     else:
         redisapi.set('index_data', json.dumps(index_data))
 
         emit_master_status.delay(room='all')
-    logger.info({'ok':index_data})
-    socket_emit(meta=json.dumps({'emit_msg':'redis status updated','type':'success'}),event='hackerlist')
-    return {"ok":index_data}
+    logger.info({'ok': index_data})
+    socket_emit(meta=json.dumps(
+        {'emit_msg': 'redis status updated', 'type': 'success'}), event='hackerlist')
+    return {"ok": index_data}
+
 
 @celery.task
 def emit_master_status(room=None):
     try:
         data = json.loads(convert(redisapi.get('index_data')))
-    except Exception as e :
+    except Exception as e:
         logger.warning('error in loading index_data ' + str(data))
         return {'failed': e}
     meta = json.dumps(data)
-    if room :
-        socket_emit(meta = meta, event='m_status',room=room)
+    if room:
+        socket_emit(meta=meta, event='m_status', room=room)
         #socket_emit(meta=json.dumps({'emit_msg':'master status updated','type':'success'}),event='hackerlist',room=room)
-        logger.info({'ok':'emit_master_status' + str(room)})
+        logger.info({'ok': 'emit_master_status' + str(room)})
     else:
-        socket_emit(meta = meta, event='m_status')
-        logger.info({'ok':'emit_master_status to all'})
-
+        socket_emit(meta=meta, event='m_status')
+        logger.info({'ok': 'emit_master_status to all'})
 
 
 '''
 emit the site status data by sockitio
 '''
 
+
 def mean_status(data):
     '''
     return the mean value for the value[1]
     '''
     j = json.loads(data)
-    r =  mean([x[1] for x in j]) * 100 
+    r = mean([x[1] for x in j]) * 100
     return '{:.2f}'.format(r)
+
 
 def spark_data():
     ret = {}
-    a = db.session.query(Statistics.managed_nodes).order_by(desc(Statistics.update_at)).limit(8).all()
+    a = db.session.query(Statistics.managed_nodes).order_by(
+        desc(Statistics.update_at)).limit(8).all()
     ret['n'] = [r for r, in a]
-    b = db.session.query(Statistics.registered_master).order_by(desc(Statistics.update_at)).limit(8).all()
+    b = db.session.query(Statistics.registered_master).order_by(
+        desc(Statistics.update_at)).limit(8).all()
     ret['m'] = [r for r, in b]
     return json.dumps(ret)
+
 
 def ret_socket_sitestatus():
     d = convert(redisapi.hgetall('sitestatus'))
     d['service_level'] = str(100.0 - float(mean_status(d['service_level'])))
     d['system_utilization'] = str(mean_status(d['system_utilization']))
-    a = db.session.query(Statistics.managed_nodes).order_by(desc(Statistics.update_at)).limit(8).all()
+    a = db.session.query(Statistics.managed_nodes).order_by(
+        desc(Statistics.update_at)).limit(8).all()
     d['n'] = [r for r, in a]
-    b = db.session.query(Statistics.registered_master).order_by(desc(Statistics.update_at)).limit(8).all()
+    b = db.session.query(Statistics.registered_master).order_by(
+        desc(Statistics.update_at)).limit(8).all()
     d['m'] = [r for r, in b]
     return d
 
@@ -207,16 +276,16 @@ def ret_socket_sitestatus():
 def emit_site_status(room=None):
     try:
         data = ret_socket_sitestatus()
-    except Exception as e :
-        logger.warning('error in loading sitestatus to '+ str(room))
+    except Exception as e:
+        logger.warning('error in loading sitestatus to ' + str(room))
         return {'failed': e}
     meta = json.dumps(data)
     if room:
-        socket_emit(meta = meta, event='sitestatus',room=room)
-        logger.info({'ok':'emit_site_status to ' + str(room)})
+        socket_emit(meta=meta, event='sitestatus', room=room)
+        logger.info({'ok': 'emit_site_status to ' + str(room)})
     else:
-        socket_emit(meta = meta, event='sitestatus')
-        logger.info({'ok':'emit_site_status to all'})
+        socket_emit(meta=meta, event='sitestatus')
+        logger.info({'ok': 'emit_site_status to all'})
 
 
 '''
@@ -229,6 +298,8 @@ Celery function description
 
 ### END ###
 '''
+
+
 def salttoken():
     try:
         if redisapi.hexists(name='salt', key='token'):
@@ -262,6 +333,7 @@ Celery function description
 ### END ###
 '''
 
+
 def salt_command(f):
     @wraps(f)
     def wrapper(*args, **kwds):
@@ -283,6 +355,8 @@ Celery function description
 
 ### END ###
 '''
+
+
 @celery.task
 @salt_command
 def redis_salt_minion_status_update():
@@ -315,13 +389,15 @@ Celery function description
 
 ### END ###
 '''
+
+
 @celery.task
 @salt_command
 def salt_api_status():
     try:
         ret = saltapi.req_get(path='stats')
-    except Exception as e :
-        return {'failed' : e}
+    except Exception as e:
+        return {'failed': e}
     return ret
 
 
@@ -335,6 +411,8 @@ Celery function description
 
 ### END ###
 '''
+
+
 @salt_command
 def salt_minion(node_name):
     try:
@@ -343,23 +421,24 @@ def salt_minion(node_name):
         return {'failed': e}
     return ret
 
+
 @celery.task
-def salt_mark_status(k,v):
+def salt_mark_status(k, v):
     target_node = db.session.query(
-                Nodedb).filter_by(node_name=k).first()
+        Nodedb).filter_by(node_name=k).first()
     master = ret_master()
-    #TODO
+    # TODO
     if target_node:
         target_node.status = v
     else:
-        target_node =  Nodedb(
-                id=uuid.uuid4(),
-                node_name=k,
-                node_ip=u'1.1.1.1',
-                bio=u'Down',
-                master=master,
-                status=v
-                )
+        target_node = Nodedb(
+            id=uuid.uuid4(),
+            node_name=k,
+            node_ip=u'1.1.1.1',
+            bio=u'Down',
+            master=master,
+            status=v
+        )
     db.session.add(target_node)
     db.session.commit()
 
@@ -374,7 +453,6 @@ this task based on the result of salt_minion_status, may return none
 
 ### END ###
 '''
-
 
 
 @celery.task
@@ -395,11 +473,11 @@ def db_salt_nodes_sync():
             node_data = salt_minion(k)
             db_data = node_data['return'][0][k]
             master = ret_master()
-            #TODO
+            # TODO
             try:
                 if target_node:
                     target_node.minion_data = db_data
-                    target_node.node_ip=db_data.get('ipv4','1.1.1.1'),
+                    target_node.node_ip = db_data.get('ipv4', '1.1.1.1'),
                     target_node.os = db_data.get('lsb_distrib_description') or (
                         db_data.get('lsb_distrib_id') + db_data.get('lsb_distrib_release')) or (db_data.get('osfullname') + db_data('osrelease'))
                     target_node.cpu = str(db_data[
@@ -414,10 +492,10 @@ def db_salt_nodes_sync():
                     target_node = Nodedb(
                         id=uuid.uuid4(),
                         node_name=db_data['id'],
-                        node_ip=db_data.get('ipv4','1.1.1.1'),
+                        node_ip=db_data.get('ipv4', '1.1.1.1'),
                         minion_data=db_data,
                         os=db_data.get('lsb_distrib_description') or (
-                        db_data.get('lsb_distrib_id') + db_data.get('lsb_distrib_release')) or (db_data.get('osfullname') + db_data('osrelease')),
+                            db_data.get('lsb_distrib_id') + db_data.get('lsb_distrib_release')) or (db_data.get('osfullname') + db_data('osrelease')),
                         cpu=str(db_data['num_cpus']) + ' * ' +
                         str(db_data['cpu_model']),
                         kenel=db_data['kernelrelease'],
@@ -439,7 +517,6 @@ def db_salt_nodes_sync():
     return {'ok': str(result) + ' updated with redis return: ' + str(count)}
 
 
-
 '''
 ### DOC ###
 
@@ -450,41 +527,45 @@ Celery function description
 
 ### END ###
 '''
+
+
 @celery.task
 def sync_node_from_influxdb():
     try:
         data = sensuapi.get('clients')
-        result =[]
+        result = []
     except Exception as e:
-        return {'failed' : e}
+        return {'failed': e}
     for item in data:
         try:
-            sensunode = session.query(Perf_Node).filter_by(sensu_node_name=item["name"]).first()
+            sensunode = session.query(Perf_Node).filter_by(
+                sensu_node_name=item["name"]).first()
         except Exception as e:
-            return {'failed' : e}
+            return {'failed': e}
         try:
-            if sensunode :
+            if sensunode:
                 sensunode.sensu_subscriptions = item["address"]
                 sensunode.sensu_version = item["version"]
                 sensunode.sensu_timestamp = item["timestamp"]
                 result.append(sensunode)
             else:
                 sensunode = Perf_Node(
-                        sensu_node_name = item["name"],
-                        sensu_subscriptions = item["address"],
-                        sensu_version = item["version"],
-                        sensu_timestamp = item["timestamp"]
-                        )
+                    sensu_node_name=item["name"],
+                    sensu_subscriptions=item["address"],
+                    sensu_version=item["version"],
+                    sensu_timestamp=item["timestamp"]
+                )
                 result.append(sensunode)
         except Exception as e:
-            return {'failed' : e}
+            return {'failed': e}
         session.add(sensunode)
     try:
         session.commit()
     except Exception as e:
-        return {'failed' : e}
+        return {'failed': e}
 
-    return {'successed' : result}
+    return {'successed': result}
+
 
 @celery.task
 def sync_praser_data(data):
@@ -493,6 +574,7 @@ def sync_praser_data(data):
         for item in row:
             result[item['tags']['host']].append(item['values'][0][1])
     return result
+
 
 @celery.task
 def sync_cpu_from_influxdb():
@@ -507,37 +589,40 @@ def sync_cpu_from_influxdb():
     praser.append(indbapi.get_sync_data('cpu_softirq'))
     praser.append(indbapi.get_sync_data('cpu_steal'))
     praser.append(indbapi.get_sync_data('cpu_guest'))
-    #return sync_praser_data(praser)
+    # return sync_praser_data(praser)
     try:
         data = sync_praser_data(praser)
     except Exception as e:
-        logger.error('error while prasering data from influx db: ' + str(praser))
+        logger.error(
+            'error while prasering data from influx db: ' + str(praser))
     try:
-        for (k,v) in data.items():
+        for (k, v) in data.items():
             target_node = Perf_Cpu(
-            node_name=k,
-            cpu_user=v[0],
-            cpu_nice=v[1],
-            cpu_system=v[2],
-            cpu_idle=v[3],
-            cpu_iowait=v[4],
-            cpu_irq=v[5],
-            cpu_softirq=v[6],
-            cpu_steal=v[7],
-            cpu_guest=v[8],  
-                )
+                node_name=k,
+                cpu_user=v[0],
+                cpu_nice=v[1],
+                cpu_system=v[2],
+                cpu_idle=v[3],
+                cpu_iowait=v[4],
+                cpu_irq=v[5],
+                cpu_softirq=v[6],
+                cpu_steal=v[7],
+                cpu_guest=v[8],
+            )
             result.append(target_node)
             session.add(target_node)
     except Exception as e:
-        logger.warning('error in creating data ' + str((k,v)) + ' in ' + str(data))
+        logger.warning('error in creating data ' +
+                       str((k, v)) + ' in ' + str(data))
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
         return {'failed': e}
-    logger.info('Completed in writing data to Pref_Cpu'+ str(data))
+    logger.info('Completed in writing data to Pref_Cpu' + str(data))
     return {'successed': result}
+
 
 @celery.task
 def sync_mem_from_influxdb():
@@ -547,31 +632,34 @@ def sync_mem_from_influxdb():
     praser.append(indbapi.get_sync_data('memory_percent_freeWOBuffersCaches'))
     praser.append(indbapi.get_sync_data('memory_percent_swapUsed'))
     praser.append(indbapi.get_sync_data('memory_percent_free'))
-    #return sync_praser_data(praser)
+    # return sync_praser_data(praser)
     try:
         data = sync_praser_data(praser)
     except Exception as e:
-        logger.error('error while prasering data from influx db: ' + str(praser))
+        logger.error(
+            'error while prasering data from influx db: ' + str(praser))
     try:
-        for (k,v) in data.items():
+        for (k, v) in data.items():
             target_node = Perf_Mem(
-            node_name=k,
-            mem_usedWOBuffersCaches=v[0],
-            mem_freeWOBuffersCaches=v[1],
-            mem_swapUsed=v[2] 
-                )
+                node_name=k,
+                mem_usedWOBuffersCaches=v[0],
+                mem_freeWOBuffersCaches=v[1],
+                mem_swapUsed=v[2]
+            )
             result.append(target_node)
             session.add(target_node)
     except Exception as e:
-        logger.warning('error in creating data ' + str((k,v)) + ' in ' + str(data))
+        logger.warning('error in creating data ' +
+                       str((k, v)) + ' in ' + str(data))
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
         return {'failed': e}
-    logger.info('Completed in writing data to Pref_Mem'+ str(data))
+    logger.info('Completed in writing data to Pref_Mem' + str(data))
     return {'successed': result}
+
 
 @celery.task
 def sync_tcp_from_influxdb():
@@ -588,39 +676,42 @@ def sync_tcp_from_influxdb():
     praser.append(indbapi.get_sync_data('tcp_LAST_ACK'))
     praser.append(indbapi.get_sync_data('tcp_LISTEN'))
     praser.append(indbapi.get_sync_data('tcp_CLOSING'))
-    #return sync_praser_data(praser)
+    # return sync_praser_data(praser)
     try:
         data = sync_praser_data(praser)
     except Exception as e:
-        logger.error('error while prasering data from influx db: ' + str(praser))
+        logger.error(
+            'error while prasering data from influx db: ' + str(praser))
     try:
-        for (k,v) in data.items():
+        for (k, v) in data.items():
             target_node = Perf_TCP(
-            node_name=k,
-            tcp_UNKNOWN=v[0],
-            tcp_ESTABLISHED=v[1],
-            tcp_SYN_SENT=v[2],
-            tcp_SYN_RECV=v[3],
-            tcp_FIN_WAIT1=v[4],
-            tcp_FIN_WAIT2=v[5],
-            tcp_CLOSE=v[6],
-            tcp_CLOSE_WAIT=v[7],
-            tcp_LAST_ACK=v[8],
-            tcp_LISTEN=v[9],
-            tcp_CLOSING=v[10],   
-                )
+                node_name=k,
+                tcp_UNKNOWN=v[0],
+                tcp_ESTABLISHED=v[1],
+                tcp_SYN_SENT=v[2],
+                tcp_SYN_RECV=v[3],
+                tcp_FIN_WAIT1=v[4],
+                tcp_FIN_WAIT2=v[5],
+                tcp_CLOSE=v[6],
+                tcp_CLOSE_WAIT=v[7],
+                tcp_LAST_ACK=v[8],
+                tcp_LISTEN=v[9],
+                tcp_CLOSING=v[10],
+            )
             result.append(target_node)
             session.add(target_node)
     except Exception as e:
-        logger.warning('error in creating data ' + str((k,v)) + ' in ' + str(data))
+        logger.warning('error in creating data ' +
+                       str((k, v)) + ' in ' + str(data))
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
         return {'failed': e}
-    logger.info('Completed in writing data to Pref_Tcp'+ str(data))
+    logger.info('Completed in writing data to Pref_Tcp' + str(data))
     return {'successed': result}
+
 
 @celery.task
 def sync_disk_from_influxdb():
@@ -629,31 +720,34 @@ def sync_disk_from_influxdb():
     praser.append(indbapi.get_sync_data('disk_usage_root_used'))
     praser.append(indbapi.get_sync_data('disk_usage_root_avail'))
     praser.append(indbapi.get_sync_data('disk_usage_root_used_percentage'))
-    #return sync_praser_data(praser)
+    # return sync_praser_data(praser)
     try:
         data = sync_praser_data(praser)
     except Exception as e:
-        logger.error('error while prasering data from influx db: ' + str(praser))
+        logger.error(
+            'error while prasering data from influx db: ' + str(praser))
     try:
-        for (k,v) in data.items():
+        for (k, v) in data.items():
             target_node = Perf_Disk(
-            node_name=k,
-            disk_usage_root_used=v[0],
-            disk_usage_root_avail=v[1],
-            disk_usage_root_used_percentage=v[2] 
-                )
+                node_name=k,
+                disk_usage_root_used=v[0],
+                disk_usage_root_avail=v[1],
+                disk_usage_root_used_percentage=v[2]
+            )
             result.append(target_node)
             session.add(target_node)
     except Exception as e:
-        logger.warning('error in creating data ' + str((k,v)) + ' in ' + str(data))
+        logger.warning('error in creating data ' +
+                       str((k, v)) + ' in ' + str(data))
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
         return {'failed': e}
-    logger.info('Completed in writing data to Pref_Disk'+ str(data))
+    logger.info('Completed in writing data to Pref_Disk' + str(data))
     return {'successed': result}
+
 
 @celery.task
 def sync_load_from_influxdb():
@@ -662,31 +756,34 @@ def sync_load_from_influxdb():
     praser.append(indbapi.get_sync_data('load_load_avg_one'))
     praser.append(indbapi.get_sync_data('load_load_avg_five'))
     praser.append(indbapi.get_sync_data('load_load_avg_fifteen'))
-    #return sync_praser_data(praser)
+    # return sync_praser_data(praser)
     try:
         data = sync_praser_data(praser)
     except Exception as e:
-        logger.error('error while prasering data from influx db: ' + str(praser))
+        logger.error(
+            'error while prasering data from influx db: ' + str(praser))
     try:
-        for (k,v) in data.items():
+        for (k, v) in data.items():
             target_node = Perf_System_Load(
-            node_name=k,
-            load_avg_one=v[0],
-            load_avg_five=v[1],
-            load_avg_fifteen=v[2] 
-                )
+                node_name=k,
+                load_avg_one=v[0],
+                load_avg_five=v[1],
+                load_avg_fifteen=v[2]
+            )
             result.append(target_node)
             session.add(target_node)
     except Exception as e:
-        logger.warning('error in creating data ' + str((k,v)) + ' in ' + str(data))
+        logger.warning('error in creating data ' +
+                       str((k, v)) + ' in ' + str(data))
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
         return {'failed': e}
-    logger.info('Completed in writing data to Pref_Load'+ str(data))
+    logger.info('Completed in writing data to Pref_Load' + str(data))
     return {'successed': result}
+
 
 @celery.task
 def sync_socket_from_influxdb():
@@ -708,7 +805,8 @@ def sync_socket_from_influxdb():
     try:
         data = sync_praser_data(praser)
     except Exception as e:
-        logger.error('error while prasering data from influx db: ' + str(praser))
+        logger.error(
+            'error while prasering data from influx db: ' + str(praser))
     try:
         for (k, v) in data.items():
             target_node = Perf_Socket(
@@ -737,8 +835,9 @@ def sync_socket_from_influxdb():
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
         return {'failed': e}
-    logger.info('Completed in writing data to Pref_Socket'+ str(data))
+    logger.info('Completed in writing data to Pref_Socket' + str(data))
     return {'successed': result}
+
 
 @celery.task
 def sync_process_from_influxdb():
@@ -749,7 +848,8 @@ def sync_process_from_influxdb():
     try:
         data = sync_praser_data(praser)
     except Exception as e:
-        logger.error('error while prasering data from influx db: ' + str(praser))
+        logger.error(
+            'error while prasering data from influx db: ' + str(praser))
     try:
         for (k, v) in data.items():
             target_node = Perf_Process_Count(
@@ -767,24 +867,26 @@ def sync_process_from_influxdb():
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
         return {'failed': e}
-    logger.info('Completed in writing data to Process_count'+ str(data))
+    logger.info('Completed in writing data to Process_count' + str(data))
     return {'successed': result}
+
 
 @celery.task
 def sync_netif_from_influxdb(netif='eth0'):
     praser = []
     result = []
-    praser.append(indbapi.get_sync_data('net_'+ netif +'_tx_bytes'))
-    praser.append(indbapi.get_sync_data('net_' + netif +'_rx_bytes'))
-    praser.append(indbapi.get_sync_data('net_' + netif +'_tx_packets'))
-    praser.append(indbapi.get_sync_data('net_' + netif +'_rx_packets'))
-    praser.append(indbapi.get_sync_data('net_' + netif +'_tx_errors'))
-    praser.append(indbapi.get_sync_data('net_' + netif +'_if_speed'))
+    praser.append(indbapi.get_sync_data('net_' + netif + '_tx_bytes'))
+    praser.append(indbapi.get_sync_data('net_' + netif + '_rx_bytes'))
+    praser.append(indbapi.get_sync_data('net_' + netif + '_tx_packets'))
+    praser.append(indbapi.get_sync_data('net_' + netif + '_rx_packets'))
+    praser.append(indbapi.get_sync_data('net_' + netif + '_tx_errors'))
+    praser.append(indbapi.get_sync_data('net_' + netif + '_if_speed'))
     try:
         data = sync_praser_data(praser)
-        #return sync_praser_data(praser)
+        # return sync_praser_data(praser)
     except Exception as e:
-        logger.error('error while prasering data from influx db: ' + str(praser))
+        logger.error(
+            'error while prasering data from influx db: ' + str(praser))
         return
     try:
         for (k, v) in data.items():
@@ -812,17 +914,19 @@ def sync_netif_from_influxdb(netif='eth0'):
     logger.info('Completed in writing data to Pref_netif')
     return {'successed': result}
 
+
 @celery.task
 def sync_ping_from_influxdb(node='master'):
     praser = []
     result = []
-    praser.append(indbapi.get_sync_data('ping_'+ node +'_packet_loss'))
-    praser.append(indbapi.get_sync_data('ping_'+ node +'_avg'))
+    praser.append(indbapi.get_sync_data('ping_' + node + '_packet_loss'))
+    praser.append(indbapi.get_sync_data('ping_' + node + '_avg'))
     try:
         data = sync_praser_data(praser)
-        #return sync_praser_data(praser)
+        # return sync_praser_data(praser)
     except Exception as e:
-        logger.error('error while prasering data from influx db: ' + str(praser))
+        logger.error(
+            'error while prasering data from influx db: ' + str(praser))
         return
     try:
         for (k, v) in data.items():
@@ -853,6 +957,7 @@ Update statistics hash in redis
 
 '''
 
+
 @celery.task
 def db_statistics_sync():
     result = []
@@ -862,17 +967,19 @@ def db_statistics_sync():
         return {'failed': 'no site status data in redis cache'}
     try:
         state = Statistics(
-            system_capacity = data['system_capacity'],
-            managed_nodes = data['managed_nodes'],
-            system_utilization = convert(redisapi.hgetall(name='sitestatus')).get('system_utilization',''),
-            user_count = data['user_count'],
-            registered_master = data['registered_master'],
-            total_task = data['total_task'],
-            service_level = convert(redisapi.hgetall(name='sitestatus')).get('service_level',''),
-            uptime = data['uptime'],
-            page_visit_count = data['page_visit_count'],
-            api_visit_count = data['api_visit_count']
-            )
+            system_capacity=data['system_capacity'],
+            managed_nodes=data['managed_nodes'],
+            system_utilization=convert(redisapi.hgetall(
+                name='sitestatus')).get('system_utilization', ''),
+            user_count=data['user_count'],
+            registered_master=data['registered_master'],
+            total_task=data['total_task'],
+            service_level=convert(redisapi.hgetall(
+                name='sitestatus')).get('service_level', ''),
+            uptime=data['uptime'],
+            page_visit_count=data['page_visit_count'],
+            api_visit_count=data['api_visit_count']
+        )
         db.session.add(state)
         db.session.commit()
         result.append(state)
@@ -882,21 +989,23 @@ def db_statistics_sync():
     logger.info('Completed in writing data to statistics' + str(result))
     return {'successed': result}
 
+
 @celery.task
 def statistics_page_visit():
     try:
         data = convert(redisapi.hgetall(name='sitestatus'))
         if not data:
             logger.warning('no site status data in redis cache')
-            return {'failed': 'no site status data in redis cache'} 
-        if data.get('page_visit_count' , None):
+            return {'failed': 'no site status data in redis cache'}
+        if data.get('page_visit_count', None):
             page_visit_count = int(data['page_visit_count'])
         else:
             page_visit_count = 0
         redisapi.hset('sitestatus', 'page_visit_count', page_visit_count + 1)
     except Exception as e:
-        return {'failed': e} 
+        return {'failed': e}
     return {'successed': 'page visit updated'}
+
 
 @celery.task
 def statistics_api_visit():
@@ -904,14 +1013,14 @@ def statistics_api_visit():
         data = convert(redisapi.hgetall(name='sitestatus'))
         if not data:
             logger.warning('no site status data in redis cache')
-            return {'failed': 'no site status data in redis cache'} 
-        if data.get('api_visit_count' , None):
+            return {'failed': 'no site status data in redis cache'}
+        if data.get('api_visit_count', None):
             page_visit_count = int(data['api_visit_count'])
         else:
             page_visit_count = 0
         redisapi.hset('sitestatus', 'api_visit_count', page_visit_count + 1)
     except Exception as e:
-        return {'failed': e} 
+        return {'failed': e}
     return {'successed': 'page visit updated'}
 
 
@@ -935,7 +1044,7 @@ def redis_statistics_update():
         redisapi.hset('sitestatus', 'uptime', (datetime.utcnow() - db.session.query(
             Masterdb.create_at).first()[0]).days)
     except Exception as e:
-        logger.warning('error in writing sitestatus '+ str(e))
+        logger.warning('error in writing sitestatus ' + str(e))
         return {'failed': e}
     logger.info('Completed in updating site status')
     emit_site_status.delay(room='all')

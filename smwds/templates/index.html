@@ -250,12 +250,30 @@
                // console.log('m_status:' + msg);
                 update_m_status(msg);
 
+            }); 
+
+            socket.on('nodelist', function(msg) {
+               //console.log('nodelist:' + msg);
+               update_nodelist(msg);
+
             });  
 
            socket.on('hackerlist',function(msg){
             console.log('hackerList:'+msg);
             update_hacklist(msg);
            });
+
+        function update_nodelist(m){
+            var data = JSON.parse(m);
+            console.log(data);
+            showdata('nodelist');
+            hideloading('node-loading');
+            $('.footable').footable().load(data, true);
+            $('.footable').trigger('footable_initialized');
+            $('.footable').trigger('footable_resize');
+            $('.footable').trigger('footable_redraw');
+        };
+
         function update_hacklist(m){
             msg = JSON.parse(m);
             //console.log(msg);
@@ -570,8 +588,10 @@
             var ctx = document.getElementById("lineChart").getContext("2d");
             var myNewChart = new Chart(ctx).Line(lineData, lineOptions);
 */
-
             $('.footable').footable();
+
+
+     
     
             $('.footable').footable().bind({
                   'footable_filtering' : function(e) {
