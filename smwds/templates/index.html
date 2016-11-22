@@ -259,19 +259,31 @@
             });  
 
            socket.on('hackerlist',function(msg){
-            console.log('hackerList:'+msg);
+            //console.log('hackerList:'+msg);
             update_hacklist(msg);
            });
-
+        /// socket redraw function
         function update_nodelist(m){
             var data = JSON.parse(m);
-            console.log(data);
+            //console.log(data);
             showdata('nodelist');
             hideloading('node-loading');
-            $('.footable').footable().load(data, true);
-            $('.footable').trigger('footable_initialized');
-            $('.footable').trigger('footable_resize');
-            $('.footable').trigger('footable_redraw');
+            for( var i = data.length; i--;) {
+                console.log(data[i]);
+                var row = '<tr>';
+                row += '<td>' + data[i].Name + '</td>';
+                row += '<td>' + data[i].Tag.join(' ') + '</td>';
+                row += '<td>' + data[i].Status + '</td>';
+                row += '<td>' + data[i].Type + '</td>';
+                row += '<td>' + data[i].Information + '</td>';
+                row += '<td>' + data[i].Note + '</td>';
+                row += '<td>' + data[i].Operator + '</td>';
+                row += '<td>' + data[i].Date + '</td>';
+                row += '<td>' + data[i].Task.join(' ') + '</td>';
+                row += '</tr>';
+                footable.appendRow(row);
+                    }
+            footable.redraw();
         };
 
         function update_hacklist(m){
@@ -294,9 +306,6 @@
                     ];
                      break;
             }
-            //var nhlvalues = [
-             //     { id:hlid++,emit_msg: msg.emit_msg, emit_time: '<i class="emit_time fa fa-at"> ' + Date() + '</i>'}
-              //      ];
             hackerList.add(nhlvalues);
             hackerList.sort('id', { order: 'desc' });
             var listone = document.getElementById('hacker-list').getElementsByTagName('li')[0];
@@ -474,12 +483,10 @@
                 hackerList.on('sortComplete',function(){
                   //  console.log('sort completed.');
                 });
+                /*
                $('#hacker-list').click(function() {
                 hackerList.add([{ id:hlid++,emit_msg: '<i class="fa fa-warning"></i> System initialization completed', emit_time: '<i class="fa fa-warning"> ' + Date() + '</i>'}]);  
                 hackerList.sort('id', { order: 'desc' });
-               ///console.log(hackerList.search());
-               //console.log(document.getElementById('hacker-list').getElementsByTagName('li')[0]);
-              // console.log(hlid);
                 document.getElementById('hacker-list').getElementsByTagName('li')[0].className = "animated bounceInUp warning-element";
                 setTimeout(function(){
                  document.getElementById('hacker-list').getElementsByTagName('li')[0].className = "animated bounce warning-element";
@@ -487,110 +494,15 @@
                     , 100);
 
                 });
-                   
+                   */
                 ///fa-warning fa-wrench fa-user fa-sitemap
-/*
-            var d1 = [[1262304000000, 6], [1264982400000, 3057], [1267401600000, 20434], [1270080000000, 31982], [1272672000000, 26602], [1275350400000, 27826], [1277942400000, 24302], [1280620800000, 24237], [1283299200000, 21004], [1285891200000, 12144], [1288569600000, 10577], [1291161600000, 10295]];
-            var d2 = [[1262304000000, 5], [1264982400000, 200], [1267401600000, 1605], [1270080000000, 6129], [1272672000000, 11643], [1275350400000, 19055], [1277942400000, 30062], [1280620800000, 39197], [1283299200000, 37000], [1285891200000, 27000], [1288569600000, 21000], [1291161600000, 17000]];
-*/
+
+
+
+            //$('.footable').footable();
+            var footable = $('.footable').footable().data('footable');
 
 /*
-            var data1 = [
-                [0,4],[1,8],[2,5],[3,10],[4,4],[5,16],[6,5],[7,11],[8,6],[9,11],[10,20],[11,10],[12,13],[13,4],[14,7],[15,8],[16,12]
-            ];
-            var data2 = [
-                [0,0],[1,2],[2,7],[3,4],[4,11],[5,4],[6,2],[7,5],[8,11],[9,5],[10,4],[11,1],[12,5],[13,2],[14,5],[15,2],[16,0]
-            ];
-
-            $("#flot-dashboard5-chart").length && $.plot($("#flot-dashboard5-chart"), [
-                        data1,  data2
-                    ],
-                    {
-                        series: {
-                            lines: {
-                                show: false,
-                                fill: true
-                            },
-                            splines: {
-                                show: true,
-                                tension: 0.4,
-                                lineWidth: 1,
-                                fill: 0.4
-                            },
-                            points: {
-                                radius: 0,
-                                show: true
-                            },
-                            shadowSize: 2
-                        },
-                        grid: {
-                            hoverable: true,
-                            clickable: true,
-
-                            borderWidth: 2,
-                            color: 'transparent'
-                        },
-                        colors: ["#1ab394", "#1C84C6"],
-                        xaxis:{
-                        },
-                        yaxis: {
-                        },
-                        tooltip: false
-                    }
-            );*/
-/*
-            var l_data = "" 
-            var m_data = ""
-            var lineData = {
-                //labels: ["label 1", "label 2", "label 3", "label 4", "label 5", "label 6", "label 7"],
-                labels:  l_data[1],
-                datasets: [
-                    {
-                        label: "Example dataset",
-                        fillColor: "rgba(220,220,220,0.5)",
-                        strokeColor: "rgba(220,220,220,1)",
-                        pointColor: "rgba(220,220,220,1)",
-                        pointStrokeColor: "#fff",
-                        pointHighlightFill: "#fff",
-                        pointHighlightStroke: "rgba(220,220,220,1)",
-                        data: l_data[0]
-                    },
-                    {
-                        label: "Example dataset",
-                        fillColor: "rgba(26,179,148,0.5)",
-                        strokeColor: "rgba(26,179,148,0.7)",
-                        pointColor: "rgba(26,179,148,1)",
-                        pointStrokeColor: "#fff",
-                        pointHighlightFill: "#fff",
-                        pointHighlightStroke: "rgba(26,179,148,1)",
-                        data: m_data[0]
-                    }
-                ]
-            };
-
-            var lineOptions = {
-                scaleShowGridLines: true,
-                scaleGridLineColor: "rgba(0,0,0,.05)",
-                scaleGridLineWidth: 1,
-                bezierCurve: true,
-                bezierCurveTension: 0.4,
-                pointDot: true,
-                pointDotRadius: 4,
-                pointDotStrokeWidth: 1,
-                pointHitDetectionRadius: 20,
-                datasetStroke: true,
-                datasetStrokeWidth: 2,
-                datasetFill: true,
-                responsive: true,
-            };
-
-
-            var ctx = document.getElementById("lineChart").getContext("2d");
-            var myNewChart = new Chart(ctx).Line(lineData, lineOptions);
-*/
-            $('.footable').footable();
-
-
      
     
             $('.footable').footable().bind({
@@ -626,7 +538,7 @@
                                 footableFilter.filter(search_text);
                             
                             });
-
+*/
 
             /*$('.footable2').footable();
 

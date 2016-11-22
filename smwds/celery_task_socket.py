@@ -119,7 +119,37 @@ def self_test(x=16, y=16, url=None):
 '''
 emit index page data 
 '''
-
+@celery.task
+def db_update_node_tag():
+    try:
+        data = db.session.query(Nodedb).all()
+        master_data = db.session.query(Masterdb).all()
+        for q in data:
+            print(q)
+            tag = Tag(
+                node_id=q.id,
+                node=q,
+                name='Salt Node',
+                type='default',
+                url='fa fa-soundcloud'
+            )
+            db.session.add(tag)
+            for p in master_data:
+                if p.master_name == q.node_name:
+                    tag = Tag(
+                        node_id=q.id,
+                        node=q,
+                        name='Master Node',
+                        type='primary',
+                        url='fa fa-soundcloud'
+                    )
+    except Exception as e:
+        logger.warning('error in creating tag ' + str(tag))
+        return {'failed': e}
+    else:
+        db.session.commit()
+        logger.info('db tags created')
+        return {'ok': 'db tags created'}
 
 @celery.task
 def redis_update_nodelist():
