@@ -248,19 +248,22 @@
             
            socket.on('m_status', function(msg) {
                // console.log('m_status:' + msg);
-                update_m_status(msg);
+                setTimeout(update_m_status(msg), 100);
+               // update_m_status(msg);
 
             }); 
 
             socket.on('nodelist', function(msg) {
                //console.log('nodelist:' + msg);
-               update_nodelist(msg);
+               setTimeout(update_nodelist(msg), 300);
+               //update_nodelist(msg);
 
             });  
 
            socket.on('hackerlist',function(msg){
             //console.log('hackerList:'+msg);
-            update_hacklist(msg);
+            setTimeout(update_hacklist(msg), 600);
+            //update_hacklist(msg);
            });
         /// socket redraw function
         function update_nodelist(m){
@@ -273,8 +276,8 @@
                 var row = '<tr>';
                 row += '<td>' + data[i].Name + '</td>';
                 row += '<td>' + data[i].Tag.join(' ') + '</td>';
-                row += '<td>' + data[i].Status + '</td>';
                 row += '<td>' + data[i].Type + '</td>';
+                row += '<td>' + data[i].Status + '</td>';
                 row += '<td>' + data[i].Information + '</td>';
                 row += '<td>' + data[i].Note + '</td>';
                 row += '<td>' + data[i].Operator + '</td>';
@@ -345,16 +348,10 @@
                 showdata('m_status');
                 hideloading('m-loading');
                 cy.load(n_data);
-               // console.log(c_data);
-                //console.log(m_name);
-
-                //console.log(l_data);
-                //console.log(m_data);
                 document.getElementById('master').innerHTML = 'Master Name :' + m_name;
                 document.getElementById('monitor_date').innerHTML = 'Last Update:' + Date();
                 var lineData = {
-                    //labels: ["label 1", "label 2", "label 3", "label 4", "label 5", "label 6", "label 7"],
-                labels:  l_data[1],
+                  labels:  l_data[1],
                   datasets: [
                        {
                            label: "CPU",
@@ -364,14 +361,6 @@
                            pointBackgroundColor:"#fff",
                            pointHoverBackgroundColor:  "#fff",
                            pointHoverBorderColor:"rgba(220,220,220,1)",
-                           /*
-                           fillColor: "rgba(220,220,220,0.5)",
-                           strokeColor: "rgba(220,220,220,1)",
-                           pointColor: "rgba(220,220,220,1)",
-                           pointStrokeColor: "#fff",
-                           pointHighlightFill: "#fff",
-                           pointHighlightStroke: "rgba(220,220,220,1)",
-                           */
                            data: l_data[0]
                        },
                        {
@@ -382,12 +371,6 @@
                            pointBackgroundColor:"#fff",
                            pointHoverBackgroundColor:  "#fff",
                            pointHoverBorderColor:"rgba(26,179,148,1)",
-                           /*fillColor: "rgba(26,179,148,0.5)",
-                           strokeColor: "rgba(26,179,148,0.7)",
-                           pointColor: "rgba(26,179,148,1)",
-                           pointStrokeColor: "#fff",
-                           pointHighlightFill: "#fff",
-                           pointHighlightStroke: "rgba(26,179,148,1)",*/
                            data: m_data[0]
                        }
                    ]
@@ -426,12 +409,8 @@
 
            var cy =  cytoscape({                        
                            container: document.getElementById('cy'),
-                        
-                        //   elements: json,
-                        
                            boxSelectionEnabled: false,
                            autounselectify: true,
-
                            layout: {
                                name: 'random'
                            },
@@ -449,7 +428,6 @@
                                        'background-color': '#11479e'
                                    }
                                },
-
                                {
                                    selector: 'edge',
                                    style: {
@@ -466,19 +444,16 @@
                 var hlid = 0;
                 var hloptions = {
                   valueNames: [ 'emit_msg', 'emit_time',{ data: ['id'] } ],
-                 // item: '<li class="warning-element animated fadeInUp" ><p class="emit_msg"></p><div  class="agile-detail emit_time"></div></li>'
                  item: '<li data-id="1" class=" animated bounceInUp " ><p class="emit_msg"></p><div  class="agile-detail emit_time"></div></li>',
                  page:6,
                  plugins: [
                        ListPagination({})
                      ]
                 };
-                
                 //warning-element info-element success-element
                 var hlvalues = [
                   { id:hlid++,emit_msg: 'System initialization completed', emit_time: '<i class="fa fa-warning"> ' + Date() + '</i>'}
-                ];
-                
+                ];  
                 var hackerList = new List('hacker-list', hloptions); 
                 hackerList.on('sortComplete',function(){
                   //  console.log('sort completed.');
@@ -501,7 +476,10 @@
 
             //$('.footable').footable();
             var footable = $('.footable').footable().data('footable');
-
+            $('#search1').change(function (e) {
+                 e.preventDefault();
+                 $('.footable').trigger('footable_filter', {filter: $('#search1').val()});
+               });
 /*
      
     

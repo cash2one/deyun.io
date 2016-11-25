@@ -161,10 +161,17 @@ def redis_update_nodelist():
             taglist = []
             for x in q.tags:
                 taglist.append(
-                    '<button class="btn btn-' + x.type + ' btn-circle" type="button"  data-container="body" data-toggle="popover" data-placement="top" data-content="' + x.name + '" data-original-title="" title=""><i class="' + x.url + '"></i></button>')
+                    '<span class="label label-' + x.type + '"><i class="' + x.url + '"></i> ' + x.name + '</span>'
+                    )
+                   #'<button class="btn btn-'+ x.type +' btn-circle" type="button"  data-container="body" data-toggle="popover" data-placement="top" data-content="' + x.name + '" data-original-title="" title=""><i class="' + x.url + '"></i></button>')
             data['Name'] = q.node_name
             data['Tag'] = taglist
-            data['status'] = q.status
+            if q.status == 'up':
+                data['Status'] = '<p><span class="label label-primary">' + q.status + '</span></p>'
+            elif q.status == 'down':
+                data['Status'] = '<p><span class="label label-warning">' + q.status + '</span></p>'
+            else:
+                data['Status'] = '<p><span class="label ">' + 'unknow' + '</span></p>'       
             data['Type'] = q.os
             data['Information'] = q.cpu + ' ' + q.mem + 'M'
             data['Note'] = q.bio

@@ -22,9 +22,10 @@ class Tasks(db.Model):
     node = db.relationship('Nodedb', backref='tasks')
     update_at = Column(db.DateTime,nullable=False, default=get_current_time)
     task_name = Column(db.String(255), nullable=False,unique=False, index=True)
-    command = Column(db.String(STRING_LEN), nullable=False, default="None")
-    require = Column(JSONType(10000),nullable=False, default='')
-    module = Column(JSONType(10000),nullable=False, default='')
+    tgt = Column(db.String(STRING_LEN), nullable=False, default='')
+    fun = Column(db.String(STRING_LEN),nullable=False, default='')
+    args = Column(db.String(STRING_LEN),nullable=False, default='')
+    info = Column(db.String(STRING_LEN),nullable=False, default='')
     timeout = Column(db.Integer, nullable=False, default=0)
 
     @classmethod
