@@ -11,6 +11,7 @@ import redis
 import time
 import logging
 import base64
+import psycopg2
 from celery.signals import task_prerun
 from datetime import timedelta
 from celery.schedules import crontab
@@ -66,6 +67,7 @@ pawd = config['SALTAPI_PASS']
 
 redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config[
                              'REDIS_PORT'], db=config['REDIS_DB'])
+
 
 
 '''
@@ -1085,3 +1087,56 @@ def redis_statistics_update():
         return {'failed': e}
     logger.info('Completed in updating site status')
     emit_site_status.delay(room='all')
+
+
+@celery.task
+def redis_salt_task_sync():
+    try:
+        #posconn = psycopg2.connect(
+        #    dbname='salt', user='salt', host='123.56.195.220', password='salt')
+        posconn = psycopg2.connect(dbname=config['POSTGRESQL_DB'], user=config['POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
+        cur = posconn.cursor()
+        cur.execute("SELECT * FROM redis_task_list LIMIT 80;")
+        i = 0
+        ret = {}
+        for line in cur:
+            one = []
+            for col in line:
+                if type(col) is datetime:
+                    col = str(col.replace(microsecond=0))
+                one.append(col)
+            redisapi.hset('salt_task_list',i,one)
+            i+=1
+    except Exception as e:
+        posconn.close()
+        logger.warning('error in syncing redis_salt_task_sync ',e)
+        return {'failed': e}
+    posconn.close()
+    logger.info('Completed in syncing redis_salt_task_sync ')
+    return str(i) + ' records synced'
+
+@celery.task
+def redis_salt_event_sync():
+    try:
+        #posconn = psycopg2.connect(
+        #    dbname='salt', user='salt', host='123.56.195.220', password='salt')
+        posconn = psycopg2.connect(dbname=config['POSTGRESQL_DB'], user=config['POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
+        cur = posconn.cursor()
+        cur.execute("SELECT * FROM salt_events LIMIT 100;")
+        i = 0
+        ret = {}
+        for line in cur:
+            one = []
+            for col in line:
+                if type(col) is datetime:
+                    col = str(col.replace(microsecond=0))
+                one.append(col)
+            redisapi.hset('salt_event_list',i,one)
+            i+=1
+    except Exception as e:
+        posconn.close()
+        logger.warning('error in syncing redis_salt_event_sync ',e)
+        return {'failed': e}
+    posconn.close()
+    logger.info('Completed in syncing redis_salt_event_sync ')
+    return str(i) + ' records synced'

@@ -104,32 +104,50 @@
 
                                          </div>
 
-                                        <table class="footable2 table table-stripped toggle-square " data-page-size="8" data-filter=#filter2>
+                                        <table class="nodelist footable2 table table-stripped toggle-square " data-page-size="8" data-filter=#filter2>
                                         <thead>
                                         <tr>
-
-                                            <th>#</th>
-                                            <th>Task</th>
-                                            <th>Location </th>
-                                            <th>Bio </th>
-                                            <th>Operation </th>
-                                            <th>Owner</th>
-                                            <th>Date</th>
-                                            <th>Master</th>
+                                            <th>Function</th>
+                                            <th>TGT</th>
+                                            <th>Job ID</th>
+                                            <th>Status</th>
+                                            <th data-hide="all">Return</th>
+                                            <th data-hide="all">Started </th>
+                                            <th data-hide="all">Ended</th>
+                                            <th data-hide="all">arg</th>
+                                            <th data-hide="all">Kwargs</th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <tr>
-                                            <td>1</td>
-                                            <td>docker.web.001.com</td>
-                                            <td>vultr</td>
-                                            <td>Testing Function</td>
+                                        <tr class="text-navy animated infinite flash">
+                                            <td>test.ping</td>
+                                            <td>20161129131832720543</td>
+                                            <td>11111*.1111*</td>
                                             <td>
-                                           <button class="btn btn-primary dim" type="button"  data-toggle="tooltip" data-placement="top" title="" data-original-title="Tooltip on top"></i> test master</button>
+                                            <button type="button" class="btn btn-xs btn-outline btn-info  "><i class="fa fa-toggle-right"></i> Status</button>
+                                            </td> 
+                                            <td>
+                                            returned data
                                             </td>
-                                            <td>user name </td>
-                                            <td>Jul 14, 2013</td>
-                                            <td><a href=""></a></td>
+                                            <td>start time </td>
+                                            <td>end time</td>
+                                            <td>arg</td>
+                                            <td>kwargs</td>
+                                        </tr>
+                                        <tr class="text-danger">
+                                            <td>test.ping</td>
+                                            <td>20161129131832720543</td>
+                                            <td>11111*.1111*</td>
+                                            <td>
+                                            <button type="button" class="btn btn-xs btn-outline btn-danger  "><i class="fa fa-toggle-right"></i> Status</button>
+                                            </td> 
+                                            <td>
+                                            returned data
+                                            </td>
+                                            <td>start time </td>
+                                            <td>end time</td>
+                                            <td>arg</td>
+                                            <td>kwargs</td>
                                         </tr>
                                         </tbody>
                                     </table>
