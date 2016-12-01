@@ -69,7 +69,6 @@ redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config[
                              'REDIS_PORT'], db=config['REDIS_DB'])
 
 
-
 '''
 ### DOC ###
 
@@ -121,6 +120,8 @@ def self_test(x=16, y=16, url=None):
 '''
 emit index page data 
 '''
+
+
 @celery.task
 def db_update_node_tag():
     try:
@@ -153,6 +154,7 @@ def db_update_node_tag():
         logger.info('db tags created')
         return {'ok': 'db tags created'}
 
+
 @celery.task
 def redis_update_nodelist():
     try:
@@ -163,17 +165,21 @@ def redis_update_nodelist():
             taglist = []
             for x in q.tags:
                 taglist.append(
-                    '<span class="label label-' + x.type + '"><i class="' + x.url + '"></i> ' + x.name + '</span>'
-                    )
-                   #'<button class="btn btn-'+ x.type +' btn-circle" type="button"  data-container="body" data-toggle="popover" data-placement="top" data-content="' + x.name + '" data-original-title="" title=""><i class="' + x.url + '"></i></button>')
+                    '<span class="label label-' + x.type + '"><i class="' +
+                    x.url + '"></i> ' + x.name + '</span>'
+                )
+                #'<button class="btn btn-'+ x.type +' btn-circle" type="button"  data-container="body" data-toggle="popover" data-placement="top" data-content="' + x.name + '" data-original-title="" title=""><i class="' + x.url + '"></i></button>')
             data['Name'] = q.node_name
             data['Tag'] = taglist
             if q.status == 'up':
-                data['Status'] = '<p><span class="label label-primary">' + q.status + '</span></p>'
+                data['Status'] = '<p><span class="label label-primary">' + \
+                    q.status + '</span></p>'
             elif q.status == 'down':
-                data['Status'] = '<p><span class="label label-warning">' + q.status + '</span></p>'
+                data['Status'] = '<p><span class="label label-warning">' + \
+                    q.status + '</span></p>'
             else:
-                data['Status'] = '<p><span class="label ">' + 'unknow' + '</span></p>'       
+                data['Status'] = '<p><span class="label ">' + \
+                    'unknow' + '</span></p>'
             data['Type'] = q.os
             data['Information'] = q.cpu + ' ' + q.mem + 'M'
             data['Note'] = q.bio
@@ -360,7 +366,6 @@ def saltlogin(loginresult=None):
     else:
         raise Exception('require login string')
     return salttoken()
-
 '''
 ### DOC ###
 
@@ -383,6 +388,24 @@ def salt_command(f):
         except Exception as e:
             return {'failed': e}
     return wrapper
+'''
+### DOC ### 
+
+This taks should go with below task follow:
+1. obtain the jid from salt api.(salt-api could only return the jid by load_async function)
+2. boardcast the information by websocket "initilized task"
+3. rest a while (could see the state change in web when debuging)
+4. ask for the salt api for taks result (emitting "running")
+5. after api returned the result, emitting the final result  
+
+'''
+
+
+@celery.task
+@salt_command
+def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None):
+    return saltapi.local_async(tgt=tgt, fun=func, arg=arg, kwarg=kwarg)
+
 
 '''
 ### DOC ###
@@ -1092,35 +1115,45 @@ def redis_statistics_update():
 @celery.task
 def redis_salt_task_sync():
     try:
-        #posconn = psycopg2.connect(
-        #    dbname='salt', user='salt', host='123.56.195.220', password='salt')
-        posconn = psycopg2.connect(dbname=config['POSTGRESQL_DB'], user=config['POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
+        # posconn = psycopg2.connect(
+        # dbname='salt', user='salt', host='123.56.195.220', password='salt')
+        posconn = psycopg2.connect(dbname=config['POSTGRESQL_DB'], user=config[
+                                   'POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
         cur = posconn.cursor()
         cur.execute("SELECT * FROM redis_task_list LIMIT 80;")
         i = 0
-        ret = {}
         for line in cur:
-            one = []
-            for col in line:
-                if type(col) is datetime:
-                    col = str(col.replace(microsecond=0))
-                one.append(col)
-            redisapi.hset('salt_task_list',i,one)
-            i+=1
+            one = {}
+            one['jid'] = line[0]
+            one['start'] = str(line[1].replace(microsecond=0)) if type(
+                line[1]) is datetime.datetime else ''
+            one['end'] = str(line[2].replace(microsecond=0)) if type(
+                line[2]) is datetime.datetime else ''
+            one['fun'] = line[3]
+            one['arg'] = line[4]
+            one['kwarg'] = line[5]
+            one['tgt'] = line[6]
+            one['ret'] = line[7]
+            one['status'] = '<button type="button" class="btn btn-xs btn-outline btn-success  "><i class="fa fa-check-circle-o"></i> Completed</button>' if line[
+                8] is True else '<button type="button" class="btn btn-xs btn-outline btn-warning  "><i class="fa fa-times-circle-o"></i> Failed</button>'
+            redisapi.hset('salt_task_list', i, json.dumps(one))
+            i += 1
     except Exception as e:
         posconn.close()
-        logger.warning('error in syncing redis_salt_task_sync ',e)
+        logger.warning('error in syncing redis_salt_task_sync ', e)
         return {'failed': e}
     posconn.close()
     logger.info('Completed in syncing redis_salt_task_sync ')
     return str(i) + ' records synced'
 
+
 @celery.task
 def redis_salt_event_sync():
     try:
-        #posconn = psycopg2.connect(
-        #    dbname='salt', user='salt', host='123.56.195.220', password='salt')
-        posconn = psycopg2.connect(dbname=config['POSTGRESQL_DB'], user=config['POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
+        # posconn = psycopg2.connect(
+        # dbname='salt', user='salt', host='123.56.195.220', password='salt')
+        posconn = psycopg2.connect(dbname=config['POSTGRESQL_DB'], user=config[
+                                   'POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
         cur = posconn.cursor()
         cur.execute("SELECT * FROM salt_events LIMIT 100;")
         i = 0
@@ -1131,11 +1164,11 @@ def redis_salt_event_sync():
                 if type(col) is datetime:
                     col = str(col.replace(microsecond=0))
                 one.append(col)
-            redisapi.hset('salt_event_list',i,one)
-            i+=1
+            redisapi.hset('salt_event_list', i, one)
+            i += 1
     except Exception as e:
         posconn.close()
-        logger.warning('error in syncing redis_salt_event_sync ',e)
+        logger.warning('error in syncing redis_salt_event_sync ', e)
         return {'failed': e}
     posconn.close()
     logger.info('Completed in syncing redis_salt_event_sync ')
