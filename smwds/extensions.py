@@ -60,3 +60,12 @@ class FlaskCelery(Celery):
 
 
 celery = FlaskCelery()
+
+import redis
+try:
+    from prod import config
+except:
+    pass
+
+redisapi = redis.StrictRedis(host=config['REDIS_HOST'], port=config[
+                             'REDIS_PORT'], db=config['REDIS_DB'])

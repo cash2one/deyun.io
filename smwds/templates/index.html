@@ -260,11 +260,16 @@
 
             });  
 
+            socket.on('salt_task_list', function(msg) {
+                //console.log('salt_task_list:' + msg);
+                update_salt_task_list(msg);
+            }); 
+
            socket.on('hackerlist',function(msg){
             //console.log('hackerList:'+msg);
-            setTimeout(update_hacklist(msg), 600);
+                setTimeout(update_hacklist(msg), 600);
             //update_hacklist(msg);
-           });
+            });
         /// socket redraw function
         function update_nodelist(m){
             var data = JSON.parse(m);
@@ -272,7 +277,7 @@
             showdata('nodelist');
             hideloading('node-loading');
             for( var i = data.length; i--;) {
-                console.log(data[i]);
+                //console.log(data[i]);
                 var row = '<tr>';
                 row += '<td>' + data[i].Name + '</td>';
                 row += '<td>' + data[i].Tag.join(' ') + '</td>';
@@ -287,6 +292,11 @@
                 footable.appendRow(row);
                     }
             footable.redraw();
+        };
+
+        function update_salt_task_list(m){
+            var data = JSON.parse(m);
+            console.log(data);
         };
 
         function update_hacklist(m){

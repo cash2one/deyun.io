@@ -15,7 +15,7 @@ import psycopg2
 from celery.signals import task_prerun
 from datetime import timedelta
 from celery.schedules import crontab
-from weblib.libpepper import Pepper
+from weblib.libpepper import Pepper, PepperException
 from weblib.indbapi import Indb
 from weblib.sensuapi import SensuAPI
 from node import Perf, Perf_Node, Perf_Cpu, Perf_Mem, Perf_TCP, Perf_Disk, Perf_System_Load, Perf_Socket, Perf_Process_Count, Perf_Netif, Perf_Ping, Statistics
@@ -404,8 +404,64 @@ This taks should go with below task follow:
 @celery.task
 @salt_command
 def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None):
-    return saltapi.local_async(tgt=tgt, fun=func, arg=arg, kwarg=kwarg)
+    try:
+        result = saltapi.local_async(tgt=tgt, fun=func, arg=arg, kwarg=kwarg)
+        jid = result['return'][0]['jid']
+        tgt = result['return'][0]['minions']
+        i = int(redisapi.hlen('salt_task_list')) + 1
+        one = {}
+        one['jid'] = jid
+        one['start'] = ''
+        one['end'] = ''
+        one['fun'] = func
+        one['arg'] = arg
+        one['kwarg'] = kwarg
+        one['tgt'] = tgt
+        one['ret'] = ''
+        one['status'] = '<button type="button" class="btn btn-xs btn-outline btn-primary  "><i class="fa fa-send-o"></i> Excuting</button>'
+        one['text'] = 'text-navy animated infinite flash'
+        redisapi.hset('salt_task_list', i, json.dumps(one))
+    except Exception as e:
+        logger.warning('error in getting saltstack jid', e)
+        return {'failed:': e}
+    try:
+        i = 0
+        while(i < 600):
+            try:
+                i = i + 1
+                ret = saltapi.lookup_jid(jid['return'])
+                if ret['return'] != [{}]:
+                    break
+            except PepperException as e:
+                pass
+            time.sleep(5)
+        else:
+            # TODO timeout
+            return {'failed:': {'Task Running Timeout'}}
+    except Exception as e:
+        logger.warning('error in geting job status', e)
+        return {'failed:': e}
+    logger.info({'ok':  str(jid) + ' : ' + str(tgt)})
+    socket_emit(meta=json.dumps(
+        {'func': 'salt_task_list'}), event='func_init', room='all')
+    return {"ok": 'salt_task_list'}
 
+
+@celery.task
+def emit_salt_task_list(room=None):
+    try:
+        data = ''
+        data = convert(redisapi.hgetall('salt_task_list'))
+    except Exception as e:
+        logger.warning('error in loading salt_task_list '+str(data), e)
+        return {'failed': e}
+    meta = json.dumps(data)
+    if room:
+        socket_emit(meta=meta, event='salt_task_list', room=room)
+        logger.info({'ok': 'emit_salt_task_list' + str(room)})
+    else:
+        socket_emit(meta=meta, event='salt_task_list')
+        logger.info({'ok': 'emit_salt_task_list to all'})
 
 '''
 ### DOC ###
@@ -1110,18 +1166,20 @@ def redis_statistics_update():
         return {'failed': e}
     logger.info('Completed in updating site status')
     emit_site_status.delay(room='all')
+'''
+Text Color:
+text-danger text-navy text-primary text-success text-info text-warning  text-muted text-white
+'''
 
 
 @celery.task
 def redis_salt_task_sync():
     try:
-        # posconn = psycopg2.connect(
-        # dbname='salt', user='salt', host='123.56.195.220', password='salt')
         posconn = psycopg2.connect(dbname=config['POSTGRESQL_DB'], user=config[
                                    'POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
         cur = posconn.cursor()
         cur.execute("SELECT * FROM redis_task_list LIMIT 80;")
-        i = 0
+        i = 100
         for line in cur:
             one = {}
             one['jid'] = line[0]
@@ -1136,8 +1194,9 @@ def redis_salt_task_sync():
             one['ret'] = line[7]
             one['status'] = '<button type="button" class="btn btn-xs btn-outline btn-success  "><i class="fa fa-check-circle-o"></i> Completed</button>' if line[
                 8] is True else '<button type="button" class="btn btn-xs btn-outline btn-warning  "><i class="fa fa-times-circle-o"></i> Failed</button>'
+            one['text'] = 'text-info'
             redisapi.hset('salt_task_list', i, json.dumps(one))
-            i += 1
+            i -= 1
     except Exception as e:
         posconn.close()
         logger.warning('error in syncing redis_salt_task_sync ', e)

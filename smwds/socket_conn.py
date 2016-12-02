@@ -1,7 +1,8 @@
 from flask import Flask, render_template, session, request, current_app, session, url_for
 from flask_socketio import SocketIO, Namespace, emit, join_room, leave_room, \
     close_room, rooms, disconnect
-from celery_task_socket import self_test, emit_site_status, emit_master_status, emit_nodelist
+from celery_task_socket import self_test, emit_site_status, emit_master_status, emit_nodelist, emit_salt_task_list
+from extensions import redisapi
 import json
 
 import logging
@@ -31,6 +32,7 @@ class Socket_conn(Namespace):
     def on_func_init(self, message):
         #data =  message['data']
         data = json.loads(message)
+        current_app.logger.info('enter  func' + str(data))
         if data:
             if data['func'] == 'sitestatus':
                 emit_site_status.delay(room=data['room'])
@@ -45,6 +47,8 @@ class Socket_conn(Namespace):
                 emit_nodelist.delay(room=data['room'])
                 #emit('hackerlist',json.dumps({'emit_msg':'initialized m_status','type':'info'}),room=data['room'])
                 emit_hacker_list(msg='initialized nodelist', room=data['room'])
+            if data['func'] == 'salt_task_list':
+                emit_salt_task_list.delay(room=session['room'])
 
     def on_others(self):
         pass
@@ -53,6 +57,7 @@ class Socket_conn(Namespace):
 
         # All client joined the
         join_room('all')
+        redisapi.hset('websocket',session.session_id,request.sid)
         session['room'] = request.sid
         emit_hacker_list(msg='You have connected', room=session['room'])
         current_app.logger.info(
@@ -65,12 +70,16 @@ class Socket_conn(Namespace):
         # emit('func_init','sitestatus')
         emit('func_init', json.dumps(
             {'func': 'm_status', 'room': session['room']}))
-        
+
         emit('func_init', json.dumps(
             {'func': 'nodelist', 'room': session['room']}))
 
+        emit('func_init', json.dumps(
+            {'func': 'salt_task_list', 'room': session['room']}))
+
     def on_disconnect(self):
         # disconnect()
-        emit_hacker_list(msg='You have disconnected', room=session['room'])
+        redisapi.hdel('websocket',session.session_id)
+        #emit_hacker_list(msg='You have disconnected', room=session['room'])
         current_app.logger.info(
             '@sid:' + str(session.session_id) + ':disconnected')

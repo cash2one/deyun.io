@@ -156,7 +156,7 @@
                 console.log('I\'m connected! :' + msg);
             });
             socket.on('sitestatus', function(msg) {
-                console.log('sitestatus:' + msg);
+                //console.log('sitestatus:' + msg);
                 update_sitestatus(msg);
             });
             socket.on('func_init', function(msg) {
@@ -171,15 +171,15 @@
                             case 'm_status':
                                 hidedata('m_status');
                                 showloading('m-loading');
-                                socket.emit('func_init',msg)
+                                socket.emit('func_init',msg);
                                 break;
                             case 'nodelist':
                                 hidedata('nodelist');
                                 showloading('node-loading');
-                                socket.emit('func_init',msg)
+                                socket.emit('func_init',msg);
                                 break;
-                            case 3:
-                                
+                            case 'salt_task_list':
+                                socket.emit('func_init',msg);
                                 break;
                             case 4:
                                 
