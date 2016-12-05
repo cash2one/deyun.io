@@ -1191,10 +1191,10 @@ def redis_salt_task_sync():
             one['arg'] = line[4]
             one['kwarg'] = line[5]
             one['tgt'] = line[6]
-            one['ret'] = line[7]
+            #one['ret'] = line[7]
             one['status'] = '<button type="button" class="btn btn-xs btn-outline btn-success  "><i class="fa fa-check-circle-o"></i> Completed</button>' if line[
                 8] is True else '<button type="button" class="btn btn-xs btn-outline btn-warning  "><i class="fa fa-times-circle-o"></i> Failed</button>'
-            one['text'] = 'text-info'
+            one['text'] = 'text-success' if line[8] is True else 'text-warning'
             redisapi.hset('salt_task_list', i, json.dumps(one))
             i -= 1
     except Exception as e:

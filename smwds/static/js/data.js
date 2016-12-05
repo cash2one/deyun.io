@@ -1,3 +1,6 @@
+
+
+
 function cleardata(e)
 { 
     data = document.getElementsByClassName(e);
