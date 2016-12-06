@@ -265,11 +265,21 @@
                 update_salt_task_list(msg);
             }); 
 
+            socket.on('salk_jid',function(msg)){
+                console.log(msg);
+            });
+
            socket.on('hackerlist',function(msg){
             //console.log('hackerList:'+msg);
                 setTimeout(update_hacklist(msg), 600);
             //update_hacklist(msg);
             });
+        function emit_salt_jid(j){
+            msg =  {"jid": j, "func": "salt_jid"};
+            socket.emit('func_init',msg);
+        };
+
+
         /// socket redraw function
         function update_nodelist(m){
             var data = JSON.parse(m);
@@ -307,7 +317,7 @@
                 row += '<td>' + row_data.jid + '</td>';
                 row += '<td>' + row_data.tgt + '</td>';
                 row += '<td>' + row_data.status + '</td>';
-                var json_string = '<button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#myModal5">Large Modal</button>';
+                var json_string = '<button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-jid="'+ row_data.jid  +'" data-target="#myModal5">Large Modal</button>';
                 row += '<td>' + json_string + '</td>';
                 row += '<td>' + row_data.start + '</td>';
                 row += '<td>' + row_data.end + '</td>';

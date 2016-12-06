@@ -152,8 +152,8 @@
         $(document).ready(function() {
         
             socket.on('connect', function(msg) {
-                socket.emit('my_event', {data: 'I\'m connected!'});
-                console.log('I\'m connected! :' + msg);
+                //socket.emit('my_event', {data: 'I\'m connected!'});
+                //console.log('I\'m connected! :' + msg);
             });
             socket.on('sitestatus', function(msg) {
                 //console.log('sitestatus:' + msg);

@@ -49,6 +49,9 @@ class Socket_conn(Namespace):
                 emit_hacker_list(msg='initialized nodelist', room=data['room'])
             if data['func'] == 'salt_task_list':
                 emit_salt_task_list.delay(room=session['room'])
+            if data['func'] == 'salt_jid':
+                emit_salt_jid.delay(room=session['room'],jid=data['jid'])
+
 
     def on_others(self):
         pass

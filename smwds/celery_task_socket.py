@@ -463,6 +463,24 @@ def emit_salt_task_list(room=None):
         socket_emit(meta=meta, event='salt_task_list')
         logger.info({'ok': 'emit_salt_task_list to all'})
 
+@celery.task
+def emit_salt_jid(jid,room):
+    try:
+        meta = json.dumps({'msg':'initialization completed, loading data...'})
+        socket_emit(meta=meta, event='salt_jid', room=room)
+        ret = saltapi.lookup_jid(jid)
+    except Exception as e:
+        logger.exception()
+        meta = json.dumps({'msg':'error, please try again later...'})
+        socket_emit(meta=meta, event='salt_jid', room=room)
+        return 1
+    else:
+        logger.info({'ok': 'emit_salt_jid'})
+        meta = json.dumps(ret)
+        socket_emit(meta=meta, event='salt_jid', room=room)
+        return 0
+
+
 '''
 ### DOC ###
 
