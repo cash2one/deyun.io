@@ -99,7 +99,7 @@ def socket_emit(meta=None, event='others', room=None):
                        str(room) + '  ' + str(e))
         return {'failed': e}
     logger.info({('sent ' + str(event) + ' to ' + str(room)): meta})
-    return {('sent' + str(event)): meta}
+    return {('sent ' + str(event)): meta}
 
 
 @celery.task
@@ -464,18 +464,21 @@ def emit_salt_task_list(room=None):
         logger.info({'ok': 'emit_salt_task_list to all'})
 
 @celery.task
+@salt_command
 def emit_salt_jid(jid,room):
     try:
-        meta = json.dumps({'msg':'initialization completed, loading data...'})
+        meta = json.dumps({'msg':'initialization completed, loading data...','jid':jid})
         socket_emit(meta=meta, event='salt_jid', room=room)
         ret = saltapi.lookup_jid(jid)
     except Exception as e:
-        logger.exception()
-        meta = json.dumps({'msg':'error, please try again later...'})
+        logger.exception(e)
+        meta = json.dumps({'msg':'error, please try again later...','jid':jid})
         socket_emit(meta=meta, event='salt_jid', room=room)
         return 1
     else:
         logger.info({'ok': 'emit_salt_jid'})
+        meta = json.dumps({'msg':'job info loaded.','jid':jid})
+        socket_emit(meta=meta, event='salt_jid', room=room)
         meta = json.dumps(ret)
         socket_emit(meta=meta, event='salt_jid', room=room)
         return 0

@@ -265,8 +265,25 @@
                 update_salt_task_list(msg);
             }); 
 
-            socket.on('salk_jid',function(msg)){
+            socket.on('salt_jid',function(msg){
                 console.log(msg);
+                var jid_title = document.getElementsByClassName('return-jid');
+                var jid_content = document.getElementById('return-content');
+                var data = JSON.parse(msg);
+                //console.log(typeof data.msg);
+                if (typeof data.msg == "string") {
+                    for( var i = 0; i < jid_title.length; i++) { jid_title[i].innerHTML = data.jid + ' : ' +data.msg}; 
+                };
+                //console.log(typeof data.return);
+                if (typeof data.return == "object") {
+                    hideloading('return-loading');
+                    jid_content.appendChild(prettyPrint(data.return,{
+                        expanded: false, // Expanded view (boolean) (default: true),
+                        maxDepth: 5 // Max member depth (when displaying objects) (default: 3)
+                    }));
+                    // for( var i = 0; i < jid_content.length; i++) { jid_content[i].innerHTML = '<pre>' + syntaxHighlight(JSON.stringify(data.return,undefined, 2)) + '</pre>'}; 
+                };
+
             });
 
            socket.on('hackerlist',function(msg){
@@ -274,10 +291,6 @@
                 setTimeout(update_hacklist(msg), 600);
             //update_hacklist(msg);
             });
-        function emit_salt_jid(j){
-            msg =  {"jid": j, "func": "salt_jid"};
-            socket.emit('func_init',msg);
-        };
 
 
         /// socket redraw function
@@ -317,7 +330,7 @@
                 row += '<td>' + row_data.jid + '</td>';
                 row += '<td>' + row_data.tgt + '</td>';
                 row += '<td>' + row_data.status + '</td>';
-                var json_string = '<button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-jid="'+ row_data.jid  +'" data-target="#myModal5">Large Modal</button>';
+                var json_string = '<button onclick="emit_salt_jid(\''+ row_data.jid + '\')"  type="button" class="btn  btn-info btn-rounded btn-xs" data-toggle="modal" data-jid="'+ row_data.jid  +'" data-target="#myModal5">Click to check return result</button>';
                 row += '<td>' + json_string + '</td>';
                 row += '<td>' + row_data.start + '</td>';
                 row += '<td>' + row_data.end + '</td>';

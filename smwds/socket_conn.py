@@ -1,7 +1,7 @@
 from flask import Flask, render_template, session, request, current_app, session, url_for
 from flask_socketio import SocketIO, Namespace, emit, join_room, leave_room, \
     close_room, rooms, disconnect
-from celery_task_socket import self_test, emit_site_status, emit_master_status, emit_nodelist, emit_salt_task_list
+from celery_task_socket import self_test, emit_site_status, emit_master_status, emit_nodelist, emit_salt_task_list, emit_salt_jid
 from extensions import redisapi
 import json
 
@@ -30,28 +30,35 @@ class Socket_conn(Namespace):
         disconnect()
 
     def on_func_init(self, message):
-        #data =  message['data']
-        data = json.loads(message)
-        current_app.logger.info('enter  func' + str(data))
-        if data:
-            if data['func'] == 'sitestatus':
-                emit_site_status.delay(room=data['room'])
-                #emit('hackerlist',json.dumps({'emit_msg':'initialized sitestatus','type':'info'}),room=data['room'])
-                emit_hacker_list(msg='initialized sitestatus',
-                                 room=data['room'])
-            if data['func'] == 'm_status':
-                emit_master_status.delay(room=data['room'])
-                #emit('hackerlist',json.dumps({'emit_msg':'initialized m_status','type':'info'}),room=data['room'])
-                emit_hacker_list(msg='initialized m_status', room=data['room'])
-            if data['func'] == 'nodelist':
-                emit_nodelist.delay(room=data['room'])
-                #emit('hackerlist',json.dumps({'emit_msg':'initialized m_status','type':'info'}),room=data['room'])
-                emit_hacker_list(msg='initialized nodelist', room=data['room'])
-            if data['func'] == 'salt_task_list':
-                emit_salt_task_list.delay(room=session['room'])
-            if data['func'] == 'salt_jid':
-                emit_salt_jid.delay(room=session['room'],jid=data['jid'])
-
+        try:
+            try:
+                data = json.loads(message)
+            except TypeError as e :
+                data = message
+            current_app.logger.info('enter  func' + str(data))
+            if data:
+                if data['func'] == 'sitestatus':
+                    emit_site_status.delay(room=data['room'])
+                    #emit('hackerlist',json.dumps({'emit_msg':'initialized sitestatus','type':'info'}),room=data['room'])
+                    emit_hacker_list(msg='initialized sitestatus',
+                                     room=data['room'])
+                if data['func'] == 'm_status':
+                    emit_master_status.delay(room=data['room'])
+                    #emit('hackerlist',json.dumps({'emit_msg':'initialized m_status','type':'info'}),room=data['room'])
+                    emit_hacker_list(msg='initialized m_status', room=data['room'])
+                if data['func'] == 'nodelist':
+                    emit_nodelist.delay(room=data['room'])
+                    #emit('hackerlist',json.dumps({'emit_msg':'initialized m_status','type':'info'}),room=data['room'])
+                    emit_hacker_list(msg='initialized nodelist', room=data['room'])
+                if data['func'] == 'salt_task_list':
+                    emit_salt_task_list.delay(room=session['room'])
+                if data['func'] == 'salt_jid':
+                    emit_salt_jid.delay(room=session['room'],jid=data['jid'])
+        except Exception as e:
+            current_app.logger.exception(e)
+            current_app.logger.warning(
+            'socker_conn error :' + str(e) + ':' + message + ' session: ' + session['room'])
+    
 
     def on_others(self):
         pass
