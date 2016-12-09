@@ -303,14 +303,14 @@
                 //console.log(data[i]);
                 var row = '<tr>';
                 row += '<td>' + data[i].Name + '</td>';
-                row += '<td>' + data[i].Tag.join(' ') + '</td>';
+                row += '<td>' + data[i].Tag.join('<p></p>') + '</td>';
                 row += '<td>' + data[i].Type + '</td>';
                 row += '<td>' + data[i].Status + '</td>';
                 row += '<td>' + data[i].Information + '</td>';
                 row += '<td>' + data[i].Note + '</td>';
                 row += '<td>' + data[i].Operator + '</td>';
                 row += '<td>' + data[i].Date + '</td>';
-                row += '<td>' + data[i].Task.join(' ') + '</td>';
+                row += '<td>' + data[i].Task.join('<p></p>') + '</td>';
                 row += '</tr>';
                 footable.appendRow(row);
                     }

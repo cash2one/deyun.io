@@ -96,10 +96,11 @@ def socket_emit(meta=None, event='others', room=None):
             socketio.emit(event, meta, room='all', namespace='/deyunio')
     except Exception as e:
         logger.warning('error in emitting sitestatus to room :' +
-                       str(room) + '  ' + str(e))
+                       str(room) + '  ' + str(e) +' '+ str(meta))
+        logger.exception(e)
         return {'failed': e}
-    logger.info({('sent ' + str(event) + ' to ' + str(room)): meta})
-    return {('sent ' + str(event)): meta}
+    logger.info({('sent ' + str(event) ): str(room)})
+    return {('sent ' + str(event)): str(room)}
 
 
 @celery.task
@@ -191,6 +192,7 @@ def redis_update_nodelist():
         meta = json.dumps(result)
     except Exception as e:
         logger.warning('error in syncing nodelist ' + str(meta))
+        logger.exception(e)
         return {'failed': e}
     else:
         redisapi.set('node_list', meta)
@@ -204,6 +206,7 @@ def emit_nodelist(room=None):
         data = json.loads(convert(redisapi.get('node_list')))
     except Exception as e:
         logger.warning('error in loading index_data ' + str(data))
+        logger.exception(e)
         return {'failed': e}
 
     meta = json.dumps(data)
@@ -214,6 +217,7 @@ def emit_nodelist(room=None):
     else:
         socket_emit(meta=meta, event='nodelist')
         logger.info({'ok': 'emit_master_status to all'})
+    return {'ok': 'emit_nodelist'}
 
 
 def get_toplogy():
@@ -251,6 +255,7 @@ def redis_master_status_update():
     except Exception as e:
         logger.warning('error in writing master status ' +
                        str(e) + ' data:' + index_data)
+        logger.exception(e)
         return {'failed': index_data}
     else:
         redisapi.set('index_data', json.dumps(index_data))
@@ -268,6 +273,7 @@ def emit_master_status(room=None):
         data = json.loads(convert(redisapi.get('index_data')))
     except Exception as e:
         logger.warning('error in loading index_data ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     meta = json.dumps(data)
     if room:
@@ -277,6 +283,7 @@ def emit_master_status(room=None):
     else:
         socket_emit(meta=meta, event='m_status')
         logger.info({'ok': 'emit_master_status to all'})
+    return {'ok':'emit_master_status'}
 
 
 '''
@@ -323,6 +330,7 @@ def emit_site_status(room=None):
         data = ret_socket_sitestatus()
     except Exception as e:
         logger.warning('error in loading sitestatus to ' + str(room))
+        logger.exception(e)
         return {'failed': e}
     meta = json.dumps(data)
     if room:
@@ -331,6 +339,7 @@ def emit_site_status(room=None):
     else:
         socket_emit(meta=meta, event='sitestatus')
         logger.info({'ok': 'emit_site_status to all'})
+    return {'ok':'emit_site_status'}
 
 
 '''
@@ -440,6 +449,7 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None):
             return {'failed:': {'Task Running Timeout'}}
     except Exception as e:
         logger.warning('error in geting job status', e)
+        logger.exception(e)
         return {'failed:': e}
     logger.info({'ok':  str(jid) + ' : ' + str(tgt)})
     socket_emit(meta=json.dumps(
@@ -454,6 +464,7 @@ def emit_salt_task_list(room=None):
         data = convert(redisapi.hgetall('salt_task_list'))
     except Exception as e:
         logger.warning('error in loading salt_task_list '+str(data), e)
+        logger.exception(e)
         return {'failed': e}
     meta = json.dumps(data)
     if room:
@@ -462,6 +473,7 @@ def emit_salt_task_list(room=None):
     else:
         socket_emit(meta=meta, event='salt_task_list')
         logger.info({'ok': 'emit_salt_task_list to all'})
+    return {'ok':'emit_salt_task_list'}
 
 @celery.task
 @salt_command
@@ -513,9 +525,10 @@ def redis_salt_minion_status_update():
                 result.append(node)
     except Exception as e:
         logger.warning('error in updaing minion status in redis :' + str(e))
+        logger.exception(e)
         return {'failed': e}
     logger.info('minion status updated')
-    return {'ok': str(result) + ' updated with redis return: ' + str(count)}
+    return {'ok': 'redis_salt_minion_status_update' + ' updated with redis return: ' + str(count)}
 
 
 '''
@@ -536,6 +549,7 @@ def salt_api_status():
     try:
         ret = saltapi.req_get(path='stats')
     except Exception as e:
+        logger.exception(e)
         return {'failed': e}
     return ret
 
@@ -557,6 +571,7 @@ def salt_minion(node_name):
     try:
         ret = saltapi.req_get('/minions/' + node_name)
     except Exception as e:
+        logger.exception(e)
         return {'failed': e}
     return ret
 
@@ -651,9 +666,10 @@ def db_salt_nodes_sync():
             db.session.add(target_node)
     except Exception as e:
         logger.warning('Error while updaing ' + str(((k, v))) + str(e.args))
+        logger.exception(e)
     db.session.commit()
 
-    return {'ok': str(result) + ' updated with redis return: ' + str(count)}
+    return {'ok': 'db_salt_nodes_sync' + ' updated with redis return: ' + str(count)}
 
 
 '''
@@ -701,12 +717,13 @@ def sync_node_from_influxdb():
     try:
         session.commit()
     except Exception as e:
+        logger.exception(e)
         return {'failed': e}
 
-    return {'successed': result}
+    return {'successed': 'sync_node_from_influxdb'}
 
 
-@celery.task
+#@celery.task
 def sync_praser_data(data):
     result = defaultdict(list)
     for row in data:
@@ -753,14 +770,16 @@ def sync_cpu_from_influxdb():
     except Exception as e:
         logger.warning('error in creating data ' +
                        str((k, v)) + ' in ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to Pref_Cpu' + str(data))
-    return {'successed': result}
+    return {'successed': 'sync_cpu_from_influxdb'}
 
 
 @celery.task
@@ -790,14 +809,16 @@ def sync_mem_from_influxdb():
     except Exception as e:
         logger.warning('error in creating data ' +
                        str((k, v)) + ' in ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to Pref_Mem' + str(data))
-    return {'successed': result}
+    return {'successed': 'sync_mem_from_influxdb'}
 
 
 @celery.task
@@ -842,14 +863,16 @@ def sync_tcp_from_influxdb():
     except Exception as e:
         logger.warning('error in creating data ' +
                        str((k, v)) + ' in ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to Pref_Tcp' + str(data))
-    return {'successed': result}
+    return {'successed': 'sync_tcp_from_influxdb'}
 
 
 @celery.task
@@ -878,14 +901,16 @@ def sync_disk_from_influxdb():
     except Exception as e:
         logger.warning('error in creating data ' +
                        str((k, v)) + ' in ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to Pref_Disk' + str(data))
-    return {'successed': result}
+    return {'successed': 'sync_disk_from_influxdb'}
 
 
 @celery.task
@@ -914,14 +939,16 @@ def sync_load_from_influxdb():
     except Exception as e:
         logger.warning('error in creating data ' +
                        str((k, v)) + ' in ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to Pref_Load' + str(data))
-    return {'successed': result}
+    return {'successed': 'sync_load_from_influxdb'}
 
 
 @celery.task
@@ -968,14 +995,16 @@ def sync_socket_from_influxdb():
     except Exception as e:
         logger.warning('error in creating data ' +
                        str((k, v)) + ' in ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to Pref_Socket' + str(data))
-    return {'successed': result}
+    return {'successed': 'sync_socket_from_influxdb'}
 
 
 @celery.task
@@ -1000,14 +1029,16 @@ def sync_process_from_influxdb():
     except Exception as e:
         logger.warning('error in creating data ' +
                        str((k, v)) + ' in ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to Process_count' + str(data))
-    return {'successed': result}
+    return {'successed': 'sync_process_from_influxdb'}
 
 
 @celery.task
@@ -1044,14 +1075,16 @@ def sync_netif_from_influxdb(netif='eth0'):
     except Exception as e:
         logger.warning('error in creating data ' +
                        str((k, v)) + ' in ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
         logger.warning('error in writing data ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to Pref_netif')
-    return {'successed': result}
+    return {'successed': 'sync_netif_from_influxdb'}
 
 
 @celery.task
@@ -1080,11 +1113,13 @@ def sync_ping_from_influxdb(node='master'):
     except Exception as e:
         logger.warning('error in creating data ' +
                        str((k, v)) + ' in ' + str(data))
+        logger.exception(e)
         return {'failed': e}
     try:
         session.commit()
     except Exception as e:
-        logger.warning('error in writing data ' + str(data))
+        logger.warning('error in writing data ',e)
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to Pref_ping' + str(result))
     return {'successed': result}
@@ -1123,10 +1158,11 @@ def db_statistics_sync():
         db.session.commit()
         result.append(state)
     except Exception as e:
-        logger.warning('error in creating data in statistics :' + str(e))
+        logger.warning('error in creating data in statistics :',e)
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to statistics' + str(result))
-    return {'successed': result}
+    return {'successed': 'db_statistics_sync'}
 
 
 @celery.task
@@ -1142,6 +1178,7 @@ def statistics_page_visit():
             page_visit_count = 0
         redisapi.hset('sitestatus', 'page_visit_count', page_visit_count + 1)
     except Exception as e:
+        logger.exception(e)
         return {'failed': e}
     return {'successed': 'page visit updated'}
 
@@ -1159,6 +1196,7 @@ def statistics_api_visit():
             page_visit_count = 0
         redisapi.hset('sitestatus', 'api_visit_count', page_visit_count + 1)
     except Exception as e:
+        logger.exception(e)
         return {'failed': e}
     return {'successed': 'page visit updated'}
 
@@ -1183,7 +1221,8 @@ def redis_statistics_update():
         redisapi.hset('sitestatus', 'uptime', (datetime.utcnow() - db.session.query(
             Masterdb.create_at).first()[0]).days)
     except Exception as e:
-        logger.warning('error in writing sitestatus ' + str(e))
+        logger.warning('error in writing sitestatus ' ,e)
+        logger.exception(e)
         return {'failed': e}
     logger.info('Completed in updating site status')
     emit_site_status.delay(room='all')
@@ -1221,6 +1260,7 @@ def redis_salt_task_sync():
     except Exception as e:
         posconn.close()
         logger.warning('error in syncing redis_salt_task_sync ', e)
+        logger.exception(e)
         return {'failed': e}
     posconn.close()
     logger.info('Completed in syncing redis_salt_task_sync ')
@@ -1249,6 +1289,7 @@ def redis_salt_event_sync():
     except Exception as e:
         posconn.close()
         logger.warning('error in syncing redis_salt_event_sync ', e)
+        logger.exception(e)
         return {'failed': e}
     posconn.close()
     logger.info('Completed in syncing redis_salt_event_sync ')
