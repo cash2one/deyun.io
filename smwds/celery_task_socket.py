@@ -408,6 +408,19 @@ This taks should go with below task follow:
 5. after api returned the result, emitting the final result  
 
 '''
+def db_lookup_jid(jid):
+    try:
+        posconn = psycopg2.connect(dbname=config['POSTGRESQL_DB'], user=config[
+                                       'POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
+        cur = posconn.cursor()
+        cur.execute('SELECT return FROM redis_exec_list WHERE redis_exec_list.tag LIKE %s;', [jid])
+        if cur.fetchone():
+            return saltapi.lookup_jid(jid)
+        else:
+            return {'return':[{}]}
+    except Exception as e:
+        logger.exception(e)
+        return saltapi.lookup_jid(jid)
 
 
 @celery.task
@@ -427,9 +440,9 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None):
         one['kwarg'] = kwarg
         one['tgt'] = tgt
         one['ret'] = ''
-        one['status'] = '<button type="button" class="btn btn-xs btn-outline btn-primary  "><i class="fa fa-send-o"></i> Excuting</button>'
-        one['text'] = 'text-navy animated infinite flash'
-        redisapi.hset('salt_task_list', i, json.dumps(one))
+        one['status'] = '<button type="button" class="btn btn-xs btn-outline btn-primary animated infinite flash "><i class="fa fa-send-o"></i> Excuting</button>'
+        one['text'] = 'text-warning '
+        redisapi.hset('salt_task_list', jid , json.dumps(one))
     except Exception as e:
         logger.warning('error in getting saltstack jid', e)
         return {'failed:': e}
@@ -438,7 +451,11 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None):
         while(i < 600):
             try:
                 i = i + 1
-                ret = saltapi.lookup_jid(jid['return'])
+                '''
+                Query db instead of API. 
+                '''
+                #ret = saltapi.lookup_jid(jid['return'])
+                ret = db_lookup_jid(jid)
                 if ret['return'] != [{}]:
                     break
             except PepperException as e:
