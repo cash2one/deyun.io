@@ -22,8 +22,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 .animated.infinite {
-    -webkit-animation-duration: 4.5s;
-    animation-duration: 4.5s;
+    -webkit-animation-duration: 6.5s;
+    animation-duration: 6.5s;
     -webkit-animation-iteration-count: infinite;
     animation-iteration-count: infinite;
 }

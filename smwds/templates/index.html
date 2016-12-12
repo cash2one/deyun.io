@@ -255,7 +255,7 @@
 
             socket.on('nodelist', function(msg) {
                //console.log('nodelist:' + msg);
-               setTimeout(update_nodelist(msg), 300);
+               update_nodelist(msg);
                //update_nodelist(msg);
 
             });  
@@ -296,9 +296,35 @@
         /// socket redraw function
         function update_nodelist(m){
             var data = JSON.parse(m);
-            //console.log(data);
+            //console.log(data[1]);
+            
             showdata('nodelist');
             hideloading('node-loading');
+            //var i = data.length;
+            var j = Object.keys(data).length;
+            function update_node_later(data) {
+                j--;
+                //console.log(j);
+                var row_data = JSON.parse(data[j]);
+                //console.log(row_data);
+                var row = '<tr>';
+                row += '<td>' + row_data.Name + '</td>';
+                row += '<td>' + row_data.Tag.join('<p></p>') + '</td>';
+                row += '<td>' + row_data.Type + '</td>';
+                row += '<td>' + row_data.Status + '</td>';
+                row += '<td>' + row_data.Information + '</td>';
+                row += '<td>' + row_data.Note + '</td>';
+                row += '<td>' + row_data.Operator + '</td>';
+                row += '<td>' + row_data.Date + '</td>';
+                row += '<td>' + row_data.Task.join('<p></p>') + '</td>';
+                row += '</tr>';
+                footable.appendRow(row);
+                if (j > 1) {
+                     setTimeout(update_node_later(data), 0);
+                 }
+             }
+             update_node_later(data);
+            /*
             for( var i = data.length; i--;) {
                 //console.log(data[i]);
                 var row = '<tr>';
@@ -314,17 +340,43 @@
                 row += '</tr>';
                 footable.appendRow(row);
                     }
+            */
             footable.redraw();
         };
 
         function update_salt_task_list(m){
+
             var data = JSON.parse(m);
-            var i = Object.keys(data).length - 1 ;
-            //console.log(JSON.parse(data[100]));
-            //console.log(Object.keys(data).length);
-            function updateLater(data) {
+            var tl_data = data.tl;
+            var el_data = data.el;
+            var i = Object.keys(tl_data).length ;
+            var j = Object.keys(el_data).length + 1;
+            //console.log(el_data);
+            console.log(Object.keys(el_data).length);
+            function update_salt_exec_Later(data) {
+                for(key in el_data){
+　　　　　　　　　      　var row_data = JSON.parse(el_data[key]);
+                        var row = '<tr class="' + row_data.text + '">';
+                        row += '<td>' + row_data.fun + '</td>';
+                        row += '<td>' + row_data.jid + '</td>';
+                        row += '<td>' + row_data.tgt + '</td>';
+                        row += '<td>' + row_data.status + '</td>';
+                        var json_string = '<button onclick="emit_salt_jid(\''+ row_data.jid + '\')"  type="button" class="btn  btn-warning btn-rounded btn-xs" data-toggle="modal" data-jid="'+ row_data.      jid  +'" data-target="#myModal5">Click to check return result</button>';
+                        row += '<td>' + json_string + '</td>';
+                        row += '<td>' + row_data.start + '</td>';
+                        row += '<td>' + row_data.end + '</td>';
+                        row += '<td>' + row_data.arg + '</td>';
+                        row += '<td>' + row_data.kwargs + '</td>';
+                        row += '</tr>';
+                //console.log(row);
+                footable_task.appendRow(row);
+                }
+            }
+             
+            function update_salt_task_Later(data) {
                 i--;
-                var row_data = JSON.parse(data[i]);
+                var row_data = JSON.parse(tl_data[i]);
+                //console.log(row_data);
                 var row = '<tr class="' + row_data.text + '">';
                 row += '<td>' + row_data.fun + '</td>';
                 row += '<td>' + row_data.jid + '</td>';
@@ -340,10 +392,13 @@
                 //console.log(row);
                 footable_task.appendRow(row);
                  if (i > 80) {
-                     setTimeout(updateLater(data), 0);
+                     setTimeout(update_salt_task_Later(data), 0);
                  }
              }
-             updateLater(data);
+             if (Object.keys(el_data).length > 0) {
+             update_salt_exec_Later(data);
+                }
+             update_salt_task_Later(data);
              /*
             for (var i = Object.keys(data).length -1; i--;){
                 var row_data = JSON.parse(data[i]);

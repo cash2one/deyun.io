@@ -203,9 +203,9 @@ def redis_update_nodelist():
 @celery.task
 def emit_nodelist(room=None):
     try:
-        data = json.loads(convert(redisapi.get('node_list')))
+        data = convert(redisapi.hgetall('salt_node_list'))
     except Exception as e:
-        logger.warning('error in loading index_data ' + str(data))
+        logger.warning('error in loading nodelist ')
         logger.exception(e)
         return {'failed': e}
 
@@ -213,10 +213,10 @@ def emit_nodelist(room=None):
     if room:
         socket_emit(meta=meta, event='nodelist', room=room)
         #socket_emit(meta=json.dumps({'emit_msg':'master status updated','type':'success'}),event='hackerlist',room=room)
-        logger.info({'ok': 'emit_master_status' + str(room)})
+        logger.info({'ok': 'emit_nodelist' + str(room)})
     else:
         socket_emit(meta=meta, event='nodelist')
-        logger.info({'ok': 'emit_master_status to all'})
+        logger.info({'ok': 'emit_nodelist to all'})
     return {'ok': 'emit_nodelist'}
 
 
@@ -358,7 +358,7 @@ def salttoken():
     try:
         if redisapi.hexists(name='salt', key='token'):
             if (time.time() - float(bytes.decode(redisapi.hget(name='salt', key='expire')))) < 0.0:
-                ret = redisapi.hget(name='salt', key='token')
+                ret = convert(redisapi.hget(name='salt', key='token'))
                 return convert(ret)
             else:
                 return saltlogin(saltapi.login(user, pawd, 'pam'))
@@ -460,8 +460,9 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None):
 @celery.task
 def emit_salt_task_list(room=None):
     try:
-        data = ''
-        data = convert(redisapi.hgetall('salt_task_list'))
+        data = {}
+        data['el'] = convert(redisapi.hgetall('salt_exec_list'))
+        data['tl'] = convert(redisapi.hgetall('salt_task_list'))
     except Exception as e:
         logger.warning('error in loading salt_task_list '+str(data), e)
         logger.exception(e)
@@ -1254,7 +1255,7 @@ def redis_salt_task_sync():
             #one['ret'] = line[7]
             one['status'] = '<button type="button" class="btn btn-xs btn-outline btn-success  "><i class="fa fa-check-circle-o"></i> Completed</button>' if line[
                 8] is True else '<button type="button" class="btn btn-xs btn-outline btn-warning  "><i class="fa fa-times-circle-o"></i> Failed</button>'
-            one['text'] = 'text-success' if line[8] is True else 'text-warning'
+            one['text'] = 'text-success' if line[8] is True else 'text-danger'
             redisapi.hset('salt_task_list', i, json.dumps(one))
             i -= 1
     except Exception as e:
