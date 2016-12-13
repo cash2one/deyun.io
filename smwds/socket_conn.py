@@ -54,6 +54,8 @@ class Socket_conn(Namespace):
                     emit_salt_task_list.delay(room=session['room'])
                 if data['func'] == 'salt_jid':
                     emit_salt_jid.delay(room=session['room'],jid=data['jid'])
+                 if data['func'] == 'salt_ping':
+                    emit_salt_ping.delay(room=session['room'],tgt=data['tgt'])
         except Exception as e:
             current_app.logger.exception(e)
             current_app.logger.warning(

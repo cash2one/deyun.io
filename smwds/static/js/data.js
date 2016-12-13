@@ -1,4 +1,17 @@
+function open_confirm(m,n,k){
+   
+    document.getElementById('confirm-content').innerHTML = '<strong><p>Task: ' + m +'</p></strong>' + '<strong><p>TGT:' + n +'</p></strong>' + k;
+    document.getElementById('confirm-execute').onclick = function() { 
+            emit_salt_job(m,n); 
+        };
+}
 
+function emit_salt_job(m,n){
+    msg =  JSON.stringify({"tgt": n, "func": "salt_ping"});
+    
+    socket.emit('func_init',msg);
+
+}
 
 function syntaxHighlight(json) {
     json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
