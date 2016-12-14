@@ -96,10 +96,10 @@ def socket_emit(meta=None, event='others', room=None):
             socketio.emit(event, meta, room='all', namespace='/deyunio')
     except Exception as e:
         logger.warning('error in emitting sitestatus to room :' +
-                       str(room) + '  ' + str(e) +' '+ str(meta))
+                       str(room) + '  ' + str(e) + ' ' + str(meta))
         logger.exception(e)
         return {'failed': e}
-    logger.info({('sent ' + str(event) ): str(room)})
+    logger.info({('sent ' + str(event)): str(room)})
     return {('sent ' + str(event)): str(room)}
 
 
@@ -283,7 +283,7 @@ def emit_master_status(room=None):
     else:
         socket_emit(meta=meta, event='m_status')
         logger.info({'ok': 'emit_master_status to all'})
-    return {'ok':'emit_master_status'}
+    return {'ok': 'emit_master_status'}
 
 
 '''
@@ -339,7 +339,7 @@ def emit_site_status(room=None):
     else:
         socket_emit(meta=meta, event='sitestatus')
         logger.info({'ok': 'emit_site_status to all'})
-    return {'ok':'emit_site_status'}
+    return {'ok': 'emit_site_status'}
 
 
 '''
@@ -408,27 +408,29 @@ This taks should go with below task follow:
 5. after api returned the result, emitting the final result  
 
 '''
+
+
 def db_lookup_jid(jid):
     try:
         posconn = psycopg2.connect(dbname=config['POSTGRESQL_DB'], user=config[
-                                       'POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
+            'POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
         cur = posconn.cursor()
-        cur.execute('SELECT return FROM redis_exec_list WHERE redis_exec_list.tag LIKE %s;', [jid])
+        cur.execute(
+            'SELECT return FROM redis_exec_list WHERE redis_exec_list.tag LIKE %s;', [jid])
         if cur.fetchone():
             return saltapi.lookup_jid(jid)
         else:
-            return {'return':[{}]}
+            return {'return': [{}]}
     except Exception as e:
         logger.exception(e)
         return saltapi.lookup_jid(jid)
 
 
-
 @salt_command
-def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None,room=None):
+def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None):
     try:
         result = saltapi.local_async(tgt=tgt, fun=func, arg=arg, kwarg=kwarg)
-        meta = json.dumps({'msg':'starting','tgt':tgt,'func':func})
+        meta = json.dumps({'msg': 'starting', 'tgt': tgt, 'func': func})
         socket_emit(meta=meta, event='salt_task_warn', room=room)
         jid = result['return'][0]['jid']
         tgt = result['return'][0]['minions']
@@ -444,11 +446,16 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None,room=None):
         one['ret'] = ''
         one['status'] = '<button type="button" class="btn btn-xs btn-outline btn-primary animated infinite flash "><i class="fa fa-send-o"></i> Excuting</button>'
         one['text'] = 'text-warning '
-        redisapi.hset('salt_exec_list', jid , json.dumps(one))
-        socket_emit(meta=json.dumps({'func': 'salt_task_list'}), event='func_init', room='all')
+        redisapi.hset('salt_exec_list', jid, json.dumps(one))
+        socket_emit(meta=json.dumps(
+            {'func': 'salt_task_list'}), event='func_init', room='all')
     except Exception as e:
+        logger.exception(e)
         logger.warning('error in getting saltstack jid', e)
-        return {'failed:': e}
+        meta = json.dumps({'msg': 'Saltstack API not working. Please try later.',
+                           'type': 'danger', 'tgt': tgt, 'func': func})
+        socket_emit(meta=meta, event='salt_task_warn', room=room)
+        return 1
     try:
         i = 0
         while(i < 600):
@@ -460,11 +467,13 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None,room=None):
                 #ret = saltapi.lookup_jid(jid['return'])
                 ret = db_lookup_jid(jid)
                 if room:
-                    meta = json.dumps({'msg':'running','count':i,'tgt':tgt,'func':func})
+                    meta = json.dumps(
+                        {'msg': 'running', 'type': 'info', 'count': i, 'tgt': tgt, 'func': func})
                     socket_emit(meta=meta, event='salt_task_warn', room=room)
                 if ret['return'] != [{}]:
                     redis_salt_task_sync.delay()
-                    meta = json.dumps({'msg':'finished','tgt':tgt,'func':func})
+                    meta = json.dumps(
+                        {'msg': 'finished', 'type': 'success', 'tgt': tgt, 'func': func})
                     socket_emit(meta=meta, event='salt_task_warn', room=room)
                     break
             except PepperException as e:
@@ -491,7 +500,7 @@ def emit_salt_task_list(room=None):
         data['el'] = convert(redisapi.hgetall('salt_exec_list'))
         data['tl'] = convert(redisapi.hgetall('salt_task_list'))
     except Exception as e:
-        logger.warning('error in loading salt_task_list '+str(data), e)
+        logger.warning('error in loading salt_task_list ' + str(data), e)
         logger.exception(e)
         return {'failed': e}
     meta = json.dumps(data)
@@ -501,43 +510,49 @@ def emit_salt_task_list(room=None):
     else:
         socket_emit(meta=meta, event='salt_task_list')
         logger.info({'ok': 'emit_salt_task_list to all'})
-    return {'ok':'emit_salt_task_list'}
+    return {'ok': 'emit_salt_task_list'}
+
 
 @celery.task
 @salt_command
-def emit_salt_jid(jid,room):
+def emit_salt_jid(jid, room):
     try:
-        meta = json.dumps({'msg':'initialization completed, loading data...','jid':jid})
+        meta = json.dumps(
+            {'msg': 'initialization completed, loading data...', 'jid': jid})
         socket_emit(meta=meta, event='salt_jid', room=room)
         ret = saltapi.lookup_jid(jid)
     except Exception as e:
         logger.exception(e)
-        meta = json.dumps({'msg':'error, please try again later...','jid':jid})
+        meta = json.dumps(
+            {'msg': 'error, please try again later...', 'jid': jid})
         socket_emit(meta=meta, event='salt_jid', room=room)
         return 1
     else:
         logger.info({'ok': 'emit_salt_jid'})
-        meta = json.dumps({'msg':'job info loaded.','jid':jid})
+        meta = json.dumps({'msg': 'job info loaded.', 'jid': jid})
         socket_emit(meta=meta, event='salt_jid', room=room)
         meta = json.dumps(ret)
         socket_emit(meta=meta, event='salt_jid', room=room)
         return 0
 
+
 @celery.task
 @salt_command
-def emit_salt_ping(room,tgt,func):
+def emit_salt_ping(room, tgt, func):
     try:
-        if redisapi.hget('salt_task_lock',room+tgt) == func:
-            meta = json.dumps({'msg':'Task execulting.Waitting for result.','tgt':tgt,'func':func})
+        if redisapi.hget('salt_task_lock', room + tgt) == func:
+            meta = json.dumps({'msg': 'Task execulting.Waitting for result.',
+                               'type': 'warning', 'tgt': tgt, 'func': func})
             socket_emit(meta=meta, event='salt_task_warn', room=room)
         else:
-            redisapi.hset('salt_task_lock',room+tgt, func)
-            salt_exec_func(tgt=tgt,func='test.ping',room=room)
-            #redisapi.hdel('salt_task_lock',room+tgt)
+            redisapi.hset('salt_task_lock', room + tgt, func)
+            salt_exec_func(tgt=tgt, func='test.ping', room=room)
+            # redisapi.hdel('salt_task_lock',room+tgt)
             return 0
     except Exception as e:
         logger.exception(e)
-        meta = json.dumps({'msg':'Task canceled for unknonw reason.Contact admin pls.','tgt':tgt,'func':func})
+        meta = json.dumps({'msg': 'Task canceled for unknonw reason.Contact admin pls.',
+                           'type': 'warning', 'tgt': tgt, 'func': func})
         socket_emit(meta=meta, event='salt_task_warn', room=room)
         return 1
 
@@ -1163,7 +1178,7 @@ def sync_ping_from_influxdb(node='master'):
     try:
         session.commit()
     except Exception as e:
-        logger.warning('error in writing data ',e)
+        logger.warning('error in writing data ', e)
         logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to Pref_ping' + str(result))
@@ -1203,7 +1218,7 @@ def db_statistics_sync():
         db.session.commit()
         result.append(state)
     except Exception as e:
-        logger.warning('error in creating data in statistics :',e)
+        logger.warning('error in creating data in statistics :', e)
         logger.exception(e)
         return {'failed': e}
     logger.info('Completed in writing data to statistics' + str(result))
@@ -1266,7 +1281,7 @@ def redis_statistics_update():
         redisapi.hset('sitestatus', 'uptime', (datetime.utcnow() - db.session.query(
             Masterdb.create_at).first()[0]).days)
     except Exception as e:
-        logger.warning('error in writing sitestatus ' ,e)
+        logger.warning('error in writing sitestatus ', e)
         logger.exception(e)
         return {'failed': e}
     logger.info('Completed in updating site status')
@@ -1309,7 +1324,7 @@ def redis_salt_task_sync():
         return {'failed': e}
     posconn.close()
     logger.info('Completed in syncing redis_salt_task_sync ')
-    return str(100-i) + ' records synced'
+    return str(100 - i) + ' records synced'
 
 
 @celery.task
