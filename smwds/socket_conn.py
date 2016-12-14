@@ -1,7 +1,7 @@
 from flask import Flask, render_template, session, request, current_app, session, url_for
 from flask_socketio import SocketIO, Namespace, emit, join_room, leave_room, \
     close_room, rooms, disconnect
-from celery_task_socket import self_test, emit_site_status, emit_master_status, emit_nodelist, emit_salt_task_list, emit_salt_jid
+from celery_task_socket import self_test, emit_site_status, emit_master_status, emit_nodelist, emit_salt_task_list, emit_salt_jid, emit_salt_ping
 from extensions import redisapi
 import json
 
@@ -54,8 +54,8 @@ class Socket_conn(Namespace):
                     emit_salt_task_list.delay(room=session['room'])
                 if data['func'] == 'salt_jid':
                     emit_salt_jid.delay(room=session['room'],jid=data['jid'])
-                 if data['func'] == 'salt_ping':
-                    emit_salt_ping.delay(room=session['room'],tgt=data['tgt'])
+                if data['func'] == 'salt_ping':
+                    emit_salt_ping.delay(room=session['room'],tgt=data['tgt'],func=data['task'])
         except Exception as e:
             current_app.logger.exception(e)
             current_app.logger.warning(

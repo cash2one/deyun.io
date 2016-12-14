@@ -12,6 +12,7 @@ import time
 import logging
 import base64
 import psycopg2
+import datetime
 from celery.signals import task_prerun
 from datetime import timedelta
 from celery.schedules import crontab
@@ -22,7 +23,6 @@ from node import Perf, Perf_Node, Perf_Cpu, Perf_Mem, Perf_TCP, Perf_Disk, Perf_
 from api import Masterdb, Nodedb, Location
 from user import User
 from collections import defaultdict
-from datetime import datetime
 from sqlalchemy.sql import func
 from sqlalchemy import desc
 try:
@@ -423,14 +423,16 @@ def db_lookup_jid(jid):
         return saltapi.lookup_jid(jid)
 
 
-@celery.task
+
 @salt_command
-def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None):
+def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None,room=None):
     try:
         result = saltapi.local_async(tgt=tgt, fun=func, arg=arg, kwarg=kwarg)
+        meta = json.dumps({'msg':'starting','tgt':tgt,'func':func})
+        socket_emit(meta=meta, event='salt_task_warn', room=room)
         jid = result['return'][0]['jid']
         tgt = result['return'][0]['minions']
-        i = int(redisapi.hlen('salt_task_list')) + 1
+        #i = int(redisapi.hlen('salt_exec_list')) + 1
         one = {}
         one['jid'] = jid
         one['start'] = ''
@@ -442,7 +444,8 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None):
         one['ret'] = ''
         one['status'] = '<button type="button" class="btn btn-xs btn-outline btn-primary animated infinite flash "><i class="fa fa-send-o"></i> Excuting</button>'
         one['text'] = 'text-warning '
-        redisapi.hset('salt_task_list', jid , json.dumps(one))
+        redisapi.hset('salt_exec_list', jid , json.dumps(one))
+        socket_emit(meta=json.dumps({'func': 'salt_task_list'}), event='func_init', room='all')
     except Exception as e:
         logger.warning('error in getting saltstack jid', e)
         return {'failed:': e}
@@ -456,7 +459,13 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None):
                 '''
                 #ret = saltapi.lookup_jid(jid['return'])
                 ret = db_lookup_jid(jid)
+                if room:
+                    meta = json.dumps({'msg':'running','count':i,'tgt':tgt,'func':func})
+                    socket_emit(meta=meta, event='salt_task_warn', room=room)
                 if ret['return'] != [{}]:
+                    redis_salt_task_sync.delay()
+                    meta = json.dumps({'msg':'finished','tgt':tgt,'func':func})
+                    socket_emit(meta=meta, event='salt_task_warn', room=room)
                     break
             except PepperException as e:
                 pass
@@ -467,11 +476,12 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None):
     except Exception as e:
         logger.warning('error in geting job status', e)
         logger.exception(e)
-        return {'failed:': e}
+        return 1
+    redisapi.hdel('salt_exec_list', jid)
     logger.info({'ok':  str(jid) + ' : ' + str(tgt)})
     socket_emit(meta=json.dumps(
         {'func': 'salt_task_list'}), event='func_init', room='all')
-    return {"ok": 'salt_task_list'}
+    return 0
 
 
 @celery.task
@@ -487,7 +497,7 @@ def emit_salt_task_list(room=None):
     meta = json.dumps(data)
     if room:
         socket_emit(meta=meta, event='salt_task_list', room=room)
-        logger.info({'ok': 'emit_salt_task_list' + str(room)})
+        logger.info({'ok': 'emit_salt_task_list ' + str(room)})
     else:
         socket_emit(meta=meta, event='salt_task_list')
         logger.info({'ok': 'emit_salt_task_list to all'})
@@ -513,6 +523,23 @@ def emit_salt_jid(jid,room):
         socket_emit(meta=meta, event='salt_jid', room=room)
         return 0
 
+@celery.task
+@salt_command
+def emit_salt_ping(room,tgt,func):
+    try:
+        if redisapi.hget('salt_task_lock',room+tgt) == func:
+            meta = json.dumps({'msg':'Task execulting.Waitting for result.','tgt':tgt,'func':func})
+            socket_emit(meta=meta, event='salt_task_warn', room=room)
+        else:
+            redisapi.hset('salt_task_lock',room+tgt, func)
+            salt_exec_func(tgt=tgt,func='test.ping',room=room)
+            #redisapi.hdel('salt_task_lock',room+tgt)
+            return 0
+    except Exception as e:
+        logger.exception(e)
+        meta = json.dumps({'msg':'Task canceled for unknonw reason.Contact admin pls.','tgt':tgt,'func':func})
+        socket_emit(meta=meta, event='salt_task_warn', room=room)
+        return 1
 
 '''
 ### DOC ###
@@ -1256,7 +1283,7 @@ def redis_salt_task_sync():
         posconn = psycopg2.connect(dbname=config['POSTGRESQL_DB'], user=config[
                                    'POSTGRESQL_USER'], host=config['POSTGRESQL_HOST'], password=config['POSTGRESQL_PASSWD'])
         cur = posconn.cursor()
-        cur.execute("SELECT * FROM redis_task_list LIMIT 80;")
+        cur.execute("SELECT * FROM redis_task_list LIMIT 20;")
         i = 100
         for line in cur:
             one = {}
@@ -1282,7 +1309,7 @@ def redis_salt_task_sync():
         return {'failed': e}
     posconn.close()
     logger.info('Completed in syncing redis_salt_task_sync ')
-    return str(i) + ' records synced'
+    return str(100-i) + ' records synced'
 
 
 @celery.task

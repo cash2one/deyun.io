@@ -245,6 +245,10 @@
     <script>
 
         $(document).ready(function() {
+
+           socket.on('salt_task_warn',function(msg){
+            salt_task_warn(msg);
+           });
             
            socket.on('m_status', function(msg) {
                // console.log('m_status:' + msg);
@@ -344,15 +348,45 @@
             footable.redraw();
         };
 
+        function salt_task_warn(m){
+            //toastr.clear();
+
+            data = JSON.parse(m);            
+            console.log(data);
+            $.notify({
+                    icon: "fa fa-toggle-right",
+                    animate: {
+                        enter: 'animated fadeInDown',
+                        exit: 'animated fadeOutUp'
+                    },
+                    offset: 20,
+                    spacing: 10,
+                    z_index: 1031,
+                    delay: 5000,
+                    timer: 1000,
+                    mouse_over: null,
+                    placement: {
+                        from: "top",
+                        align: "center"
+                    },
+                    message: data
+                },{
+                    // settings
+                    type: 'warning'
+                });
+                        };
+
         function update_salt_task_list(m){
 
             var data = JSON.parse(m);
             var tl_data = data.tl;
             var el_data = data.el;
-            var i = Object.keys(tl_data).length ;
+            //var i = Object.keys(tl_data).length ;
+            var i = 100;
             var j = Object.keys(el_data).length + 1;
             //console.log(el_data);
             //console.log(Object.keys(el_data).length);
+            cleardata('salt_task_list');
             function update_salt_exec_Later(data) {
                 for(key in el_data){
 　　　　　　　　　      　var row_data = JSON.parse(el_data[key]);
@@ -374,7 +408,7 @@
             }
              
             function update_salt_task_Later(data) {
-                i--;
+                //console.log(i);
                 var row_data = JSON.parse(tl_data[i]);
                 //console.log(row_data);
                 var row = '<tr class="' + row_data.text + '">';
@@ -390,6 +424,7 @@
                 row += '<td>' + row_data.kwargs + '</td>';
                 row += '</tr>';
                 //console.log(row);
+                i--;
                 footable_task.appendRow(row);
                  if (i > 80) {
                      setTimeout(update_salt_task_Later(data), 0);

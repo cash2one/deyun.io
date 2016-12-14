@@ -7,7 +7,7 @@ function open_confirm(m,n,k){
 }
 
 function emit_salt_job(m,n){
-    msg =  JSON.stringify({"tgt": n, "func": "salt_ping"});
+    msg =  JSON.stringify({"tgt": n, "func": "salt_ping","task":m});
     
     socket.emit('func_init',msg);
 
