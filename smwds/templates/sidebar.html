@@ -2,16 +2,23 @@
                 <li>
                     <span class="m-r-sm text-muted welcome-message">{{ index_data['user']['name']  }} logined from {{ index_data['user']['ip'] }}</span>
                 </li>
-                <li class="dropdown">
+                <li class="dropdown" id="menu-list">
                     <a class="dropdown-toggle count-info" data-toggle="dropdown" href="index.html#">
                           <i class="fa fa-tasks"></i> <span class="label label-warning">16</span>
                     </a>
+                    <!--<ul class ="dropdown-menu dropdown-messages sidebar-list">
+                        <div class="sidebar-title">
+                            <h3> <i class="fa fa-cube"></i> Latest tasks</h3>
+                            <small><i class="fa fa-tim"></i> You have 14 tasks. 2 is running</small>
+                        </div>
+                        <li class="divider"></li></ul>
                     <ul class ="dropdown-menu dropdown-messages sidebar-list">
                         <div class="sidebar-title">
                             <h3> <i class="fa fa-cube"></i> Latest tasks</h3>
                             <small><i class="fa fa-tim"></i> You have 14 tasks. 2 is running</small>
                         </div>
-                         <li class="divider"></li>
+                        <li class="divider"></li>
+
                         <li>
                                 <a href="index.html#">
                                     <div class="small  pull-left m-t-xs media-body">
@@ -23,7 +30,6 @@
                                     <div class="progress progress-mini">
                                         <div style="width: 22%;" class="progress-bar progress-bar-warning"></div>
                                     </div>
-                                    <!--<div class="small  text-muted m-t-xs">Project end: 4:00 pm - 12.06.2014</div>-->
                                 </a>
                             </li>
                             <li class="divider"></li>
@@ -53,6 +59,13 @@
                                 </a>
                             </li>
                             
+                    </ul>-->
+                    <ul class="dropdown-menu dropdown-messages sidebar-list list">
+                        <div class=" text-center  sidebar-title">
+                            <h3> <i class="fa fa-cube"></i> Latest tasks</h3>
+                            <small><i class="fa fa-tim"></i> You have 14 tasks. 2 is running</small>
+                        </div>
+                        <li class="divider"></li></ul>    
                     </ul>
                   <!--  <ul class="dropdown-menu dropdown-messages">
                         <li>
@@ -104,7 +117,7 @@
                     </ul>
                 -->
                 </li>
-                <li class="dropdown">
+                <!--<li class="dropdown">
                     <a class="dropdown-toggle count-info" data-toggle="dropdown" href="index.html#">
                         <i class="fa fa-bell"></i>  <span class="label label-primary">8</span>
                     </a>
@@ -145,5 +158,5 @@
                             </div>
                         </li>
                     </ul>
-                </li>
+                </li>-->
             </ul>

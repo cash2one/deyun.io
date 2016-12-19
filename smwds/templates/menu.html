@@ -156,8 +156,34 @@
     
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
-        
+            var mloptions = {
+                  valueNames: ['ml_title', 'ml_progress_info','ml_info', 'ml_progress'],
+                  //<div style="width: 22%;"class="progress-bar progress-bar-warning"></div>
+                 item: '<li><a><div class="small text-center  pull-left m-t-xs media-body"><h4 class=" ml_title"></h4><p class="ml_info"></p></div><div class="small ml_progress_info"></div><div class="progress progress-mini ml_progress"></div></a></li>',
+                 page:6
+                 /*plugins: [
+                       ListPagination({})
+                     ]*/
+                };
+                //warning-element info-element success-element
+            //var mlvalues = [{ml-title:'System initialization completed'}, {ml-info: ''}, {ml-progress:''}];
+            var mlvalues = [{
+                ml_title: 'Jonny Strömberg',
+                ml_progress_info: 'ETA : 5 minutes',
+                ml_info: '1986+asdasdasdsadasdsa very long descriptyion very long descriptyion very long descriptyion very long descriptyion',
+                ml_progress: '<div style="width: 22%;"class="progress-bar progress-bar-warning"></div>'
+              },
+              {
+                ml_title: 'Jonas Arnklint',
+                ml_progress_info: 'ETA : 5 minutes',
+                ml_info: '1985+asdasdasdasd........................................',
+                ml_progress: '<div style="width: 22%;"class="progress-bar progress-bar-warning"></div>'
+              }];
+            var menuList = new List('menu-list', mloptions, mlvalues); 
+    
+            //menuList.add(mlvalues);
             socket.on('connect', function(msg) {
+                console.log( document.getElementById('menu-list'));
                 //socket.emit('my_event', {data: 'I\'m connected!'});
                 //console.log('I\'m connected! :' + msg);
             });
