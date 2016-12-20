@@ -435,14 +435,14 @@ def db_lookup_jid(jid):
 
 
 @salt_command
-def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None):
+def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None,info=None):
     try:
         result = saltapi.local_async(tgt=tgt, fun=func, arg=arg, kwarg=kwarg)
         jid = result['return'][0]['jid']
         tgt = result['return'][0]['minions']
-        meta = json.dumps({'msg': 'starting','type':'success', 'tgt': tgt, 'func': func,'jid':jid})
+        meta = json.dumps({'msg': 'starting','type':'success', 'tgt': tgt, 'func': func,'jid':jid,'info':info})
         socket_emit(meta=meta, event='salt_task_warn', room=room)
-
+        socket_emit(meta=meta, event='salt_task_menu', room=room)
         #i = int(redisapi.hlen('salt_exec_list')) + 1
         one = {}
         one['jid'] = jid
@@ -459,17 +459,20 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None):
         socket_emit(meta=json.dumps(
             {'func': 'salt_task_list'}), event='func_init', room='all')
     except Exception as e:
+        meta = json.dumps({'msg': 'Saltstack API not working. Please try later.',
+                           'type': 'danger', 'tgt': tgt, 'func': func, jid: 'FAIL'})
+        socket_emit(meta=meta, event='salt_task_warn', room=room)
         logger.exception(e)
         logger.warning('error in getting saltstack jid', e)
-        meta = json.dumps({'msg': 'Saltstack API not working. Please try later.',
-                           'type': 'danger', 'tgt': tgt, 'func': func,jid:'Fail'})
-        socket_emit(meta=meta, event='salt_task_warn', room=room)
         return 1
     try:
         i = 0
+        t = float(convert(redisapi.hget('task_timer', func)))
+        rt = t if t else 1000
         while(i < 600):
             try:
                 i = i + 1
+                j = (i * 10 / rt) * 100
                 '''
                 Query db instead of API. 
                 '''
@@ -477,17 +480,20 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None):
                 ret = db_lookup_jid(jid)
                 if room:
                     meta = json.dumps(
-                        {'msg': 'running '+ str(i), 'type': 'info', 'tgt': tgt, 'func': func,'jid':jid})
+                        {'msg': 'running '+ str(j), 'type': 'info', 'tgt': tgt, 'func': func,'jid':jid})
                     socket_emit(meta=meta, event='salt_task_warn', room=room)
                 if ret['return'] != [{}]:
                     redis_salt_task_sync.delay()
                     meta = json.dumps(
                         {'msg': 'finished', 'type': 'success', 'tgt': tgt, 'func': func,'jid':jid})
                     socket_emit(meta=meta, event='salt_task_warn', room=room)
+                    socket_emit(meta=meta, event='salt_task_menu', room=room)
+                    rt = (t  + i * 10)/2 if t else i * 10
+                    redisapi.hset('task_timer', func, rt)
                     break
             except PepperException as e:
                 pass
-            time.sleep(5)
+            time.sleep(3)
         else:
             # TODO timeout
             return {'failed:': {'Task Running Timeout'}}
@@ -547,21 +553,21 @@ def emit_salt_jid(jid, room):
 
 @celery.task
 @salt_command
-def emit_salt_ping(room, tgt, func):
+def emit_salt_ping(room, tgt, func,info):
     try:
         if redisapi.hget('salt_task_lock', room + tgt) == func:
             meta = json.dumps({'msg': 'Task execulting.Waitting for result.',
-                               'type': 'warning', 'tgt': tgt, 'func': func})
+                               'type': 'warning', 'tgt': tgt, 'func': func, 'jid':'NONE'})
             socket_emit(meta=meta, event='salt_task_warn', room=room)
         else:
             redisapi.hset('salt_task_lock', room + tgt, func)
-            salt_exec_func(tgt=tgt, func='test.ping', room=room)
+            salt_exec_func(tgt=tgt, func='test.ping', room=room,info=info)
             # redisapi.hdel('salt_task_lock',room+tgt)
             return 0
     except Exception as e:
         logger.exception(e)
         meta = json.dumps({'msg': 'Task canceled for unknonw reason.Contact admin pls.',
-                           'type': 'warning', 'tgt': tgt, 'func': func})
+                           'type': 'warning', 'tgt': tgt, 'func': func,'jid':'NONE'})
         socket_emit(meta=meta, event='salt_task_warn', room=room)
         return 1
 

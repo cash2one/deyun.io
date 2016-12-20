@@ -2,13 +2,13 @@ function open_confirm(m,n,k){
    
     document.getElementById('confirm-content').innerHTML = '<strong><p>Task: ' + m +'</p></strong>' + '<strong><p>TGT:' + n +'</p></strong>' + k;
     document.getElementById('confirm-execute').onclick = function() { 
-            emit_salt_job(m,n); 
+            emit_salt_job(m,n,k); 
         };
 }
 
-function emit_salt_job(m,n){
-    msg =  JSON.stringify({"tgt": n, "func": "salt_ping","task":m});
-    
+function emit_salt_job(m,n,k){
+    msg =  JSON.stringify({"tgt": n, "func": "salt_ping","task":m,"info":k});
+    console.log(msg);
     socket.emit('func_init',msg);
 
 }

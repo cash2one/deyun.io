@@ -186,7 +186,7 @@
             var itemId = $(this).closest('li').find('.jid').attr('data-jid');
             console.log(menuList.get("jid","1"));
             });
-            //menuList.add(mlvalues);
+
             socket.on('connect', function(msg) {
                 //console.log( document.getElementById('menu-list'));
                 //socket.emit('my_event', {data: 'I\'m connected!'});
@@ -238,7 +238,14 @@
 
             function update_menulist(m){
             msg = JSON.parse(m);
-            
+            var newmlvalues =[{
+                jid: m.jid,
+                ml_title: m.jid+' '+m.tgt +' '+m.func ,
+                ml_progress_info: m.msg,
+                ml_info: m.info,
+                ml_progress: '<div style="width: '+ m.progress+'%;"class="progress-bar progress-bar-warning"></div>'
+              }];
+            //menuList.add(newmlvalues);
 
             };
 
