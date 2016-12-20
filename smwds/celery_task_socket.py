@@ -186,7 +186,15 @@ def redis_update_nodelist():
             data['Note'] = q.bio
             data['Operator'] = q.master.master_name
             data['Date'] = str(q.create_at)
-            data['Task'] = [x.task_name for x in q.tasks]
+            tasklist = []
+            for y in q.tasks:
+                tasklist.append(
+                        '<button onclick="open_confirm(\'' +
+                            y.task_name + "\',\'" + y.tgt + "\',\'" + y.info +
+                           #'<strong><p>Task: ' + y.task_name +'</p></strong>' + '<strong><p>TGT:' + y.tgt +'</p></strong>' + y.info +
+                           '\')"  type="button" class="btn  btn-warning btn-rounded btn-xs" data-toggle="modal" data-target="#myModal6"><i class="fa fa-twitch"></i> ' + y.task_name + '</button>'
+                    )
+            data['Task'] = tasklist
             result.append(data)
             data = {}
         meta = json.dumps(result)
@@ -430,10 +438,11 @@ def db_lookup_jid(jid):
 def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None):
     try:
         result = saltapi.local_async(tgt=tgt, fun=func, arg=arg, kwarg=kwarg)
-        meta = json.dumps({'msg': 'starting','type':'success', 'tgt': tgt, 'func': func})
-        socket_emit(meta=meta, event='salt_task_warn', room=room)
         jid = result['return'][0]['jid']
         tgt = result['return'][0]['minions']
+        meta = json.dumps({'msg': 'starting','type':'success', 'tgt': tgt, 'func': func,'jid':jid})
+        socket_emit(meta=meta, event='salt_task_warn', room=room)
+
         #i = int(redisapi.hlen('salt_exec_list')) + 1
         one = {}
         one['jid'] = jid
@@ -453,7 +462,7 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None):
         logger.exception(e)
         logger.warning('error in getting saltstack jid', e)
         meta = json.dumps({'msg': 'Saltstack API not working. Please try later.',
-                           'type': 'danger', 'tgt': tgt, 'func': func})
+                           'type': 'danger', 'tgt': tgt, 'func': func,jid:'Fail'})
         socket_emit(meta=meta, event='salt_task_warn', room=room)
         return 1
     try:
@@ -468,12 +477,12 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None):
                 ret = db_lookup_jid(jid)
                 if room:
                     meta = json.dumps(
-                        {'msg': 'running '+ str(i), 'type': 'info', 'tgt': tgt, 'func': func})
+                        {'msg': 'running '+ str(i), 'type': 'info', 'tgt': tgt, 'func': func,'jid':jid})
                     socket_emit(meta=meta, event='salt_task_warn', room=room)
                 if ret['return'] != [{}]:
                     redis_salt_task_sync.delay()
                     meta = json.dumps(
-                        {'msg': 'finished', 'type': 'success', 'tgt': tgt, 'func': func})
+                        {'msg': 'finished', 'type': 'success', 'tgt': tgt, 'func': func,'jid':jid})
                     socket_emit(meta=meta, event='salt_task_warn', room=room)
                     break
             except PepperException as e:
