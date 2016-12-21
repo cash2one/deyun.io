@@ -8,6 +8,7 @@ click==6.6
 contextlib2==0.5.3
 defusedxml==0.4.1
 dominate==2.2.1
+eventlet==0.19.0
 Flask==0.11.1
 Flask-Bootstrap==3.3.6.0
 Flask-Cache==0.13.1
@@ -21,6 +22,9 @@ Flask-Session==0.3.0
 Flask-SocketIO==2.7.1
 Flask-SQLAlchemy==2.1
 Flask-WTF==0.12
+gevent==1.1.2
+greenlet==0.4.10
+gunicorn==18.0
 influxdb==3.0.0
 itsdangerous==0.24
 Jinja2==2.8
