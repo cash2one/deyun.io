@@ -347,32 +347,36 @@
             */
             footable.redraw();
         };
-       
+
         function salt_task_warn(m){
             //toastr.clear();
 
             data = JSON.parse(m);            
-            console.log(data);
+            //console.log(data);
             //console.log(window.menuList.get("jid","222333"));
             $.notify({
                     icon: "fa fa-toggle-right",
+                    title: data.jid,
+                    message:  data.tgt+" : " +data.func+" "+data.msg
+                },{
                     animate: {
                         enter: 'animated fadeInDown',
                         exit: 'animated fadeOutUp'
                     },
-                    offset: 20,
+                    allow_dismiss: true,
+                    offset: {
+                        x: 40,
+                        y: 60
+                    },
                     spacing: 10,
                     z_index: 1031,
-                    delay: 5000,
+                    delay: 10000,
                     timer: 1000,
                     mouse_over: null,
                     placement: {
                         from: "top",
-                        align: "center"
+                        align: "right"
                     },
-                    message: "<p>"+data.jid+"</p>"+"<p>" + data.tgt+"</p><p>" +data.func+"</p><p>"+data.msg+"</p>"
-                },{
-                    // settings
                     type: data.type
                 });
                         };
@@ -583,6 +587,8 @@
                            },
                            minZoom: 0.3,
                            maxZoom: 3,
+                           zoomingEnabled: true,
+                           userZoomingEnabled: false,
                            wheelSensitivity: 0.8,
                            style: [
                                {

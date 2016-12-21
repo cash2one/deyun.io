@@ -27,7 +27,7 @@
     <div id="wrapper">
         <div id="page-wrapper" class="gray-bg">
         <div class="row border-bottom white-bg">
-        <nav class="navbar navbar-static-top" role="navigation">
+        <nav class="navbar navbar-fixed-top" role="navigation">
             <div class="navbar-header">
                 {% cache 60*5 %}
                 <button aria-controls="navbar" aria-expanded="false" data-target="#navbar" data-toggle="collapse" class="navbar-toggle collapsed" type="button">
@@ -156,11 +156,13 @@
     
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
+            var mltask = 0;
+            var mlexec = 0;
             var mloptions = {
                   valueNames: ['ml_title', 'ml_progress_info','ml_info', 'ml_progress',{ attr: 'data-jid', name: 'jid' }],
-                  //<div style="width: 22%;"class="progress-bar progress-bar-warning"></div>
-                 item: '<li><button class="ml_test">Test button></button><a><div class="small  pull-left m-t-xs media-body"><h4 class=" text-center ml_title jid" data-jid="23456"></h4><p class="ml_info"></p></div><div class="small ml_progress_info"></div><div class="progress progress-mini ml_progress"></div></a></li>',
-                 page:6
+                  //<div style="width: 22%;"class="progress-bar progress-bar-warning"></div> <button class="ml_test">Test button></button>
+                 item: '<li><a><div class="small  pull-left m-t-xs media-body"><h4 class=" text-center ml_title jid" data-jid="23456"></h4><p class="ml_info"></p></div><div class="small ml_progress_info"></div><div class="progress progress-mini ml_progress"></div></a></li>',
+                 page:50
                  /*plugins: [
                        ListPagination({})
                      ]*/
@@ -181,13 +183,14 @@
                 ml_info: '1985+asdasdasdasd........................................',
                 ml_progress: '<div style="width: 22%;"class="progress-bar progress-bar-warning"></div>'
               }];
-            var menuList = new List('menu-list', mloptions, mlvalues); 
+            var menuList = new List('menu-list', mloptions); 
             $('.ml_test').click(function() {
             var itemId = $(this).closest('li').find('.jid').attr('data-jid');
             console.log(menuList.get("jid","1"));
             });
 
-            socket.on('connect', function(msg) {
+            socket.on('salt_task_menu', function(msg) {
+                update_menulist(msg);
                 //console.log( document.getElementById('menu-list'));
                 //socket.emit('my_event', {data: 'I\'m connected!'});
                 //console.log('I\'m connected! :' + msg);
@@ -238,15 +241,32 @@
 
             function update_menulist(m){
             msg = JSON.parse(m);
-            var newmlvalues =[{
-                jid: m.jid,
-                ml_title: m.jid+' '+m.tgt +' '+m.func ,
-                ml_progress_info: m.msg,
-                ml_info: m.info,
-                ml_progress: '<div style="width: '+ m.progress+'%;"class="progress-bar progress-bar-warning"></div>'
-              }];
-            //menuList.add(newmlvalues);
-
+            console.log(msg);
+            var newmlvalues ={
+                jid: msg.jid,
+                ml_title: msg.jid,
+                ml_progress_info: msg.tgt + msg.msg,
+                ml_info: msg.info,
+                ml_progress: '<div style="width: '+ msg.progress+'%;"class="progress-bar progress-bar-'+msg.type+'"></div>'
+              };
+            switch (msg.msg){
+                case 'started':
+                    mltask += 1;
+                    mlexec += 1;
+                    menuList.add(newmlvalues);
+                    break;
+                case 'completed':
+                    mlexec -= 1;
+                    var mlitem = menuList.get('jid', msg.jid)[0];
+                    mlitem.values(newmlvalues);
+                default:
+                    var mlitem = menuList.get('jid', msg.jid)[0];
+                    mlitem.values(newmlvalues);
+            }
+            console.log(menuList.get('jid', msg.jid));
+            
+            document.getElementById('ml_task_counter').innerHTML = mlexec;
+            document.getElementById('task_counter').innerHTML = ' You have '+mltask +' tasks. '+mlexec+' is running';
             };
 
             

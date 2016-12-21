@@ -440,7 +440,7 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None,in
         result = saltapi.local_async(tgt=tgt, fun=func, arg=arg, kwarg=kwarg)
         jid = result['return'][0]['jid']
         tgt = result['return'][0]['minions']
-        meta = json.dumps({'msg': 'starting','type':'success', 'tgt': tgt, 'func': func,'jid':jid,'info':info})
+        meta = json.dumps({'msg': 'started','type':'success', 'tgt': tgt, 'func': func,'jid':jid,'info':info,'progress':'0'})
         socket_emit(meta=meta, event='salt_task_warn', room=room)
         socket_emit(meta=meta, event='salt_task_menu', room=room)
         #i = int(redisapi.hlen('salt_exec_list')) + 1
@@ -456,12 +456,13 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None,in
         one['status'] = '<button type="button" class="btn btn-xs btn-outline btn-primary animated infinite flash "><i class="fa fa-send-o"></i> Excuting</button>'
         one['text'] = 'text-warning '
         redisapi.hset('salt_exec_list', jid, json.dumps(one))
+        redisapi.expire('salt_exec_list',1800)
         socket_emit(meta=json.dumps(
             {'func': 'salt_task_list'}), event='func_init', room='all')
     except Exception as e:
         redisapi.hdel('salt_exec_list', jid)
         meta = json.dumps({'msg': 'Saltstack API not working. Please try later.',
-                           'type': 'danger', 'tgt': tgt, 'func': func, jid: 'FAIL'})
+                           'progress':'0','type': 'danger', 'tgt': tgt, 'func': func, jid: 'FAIL'})
         socket_emit(meta=meta, event='salt_task_warn', room=room)
         logger.exception(e)
         logger.warning('error in getting saltstack jid', e)
@@ -481,12 +482,13 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None,in
                 ret = db_lookup_jid(jid)
                 if room:
                     meta = json.dumps(
-                        {'msg': 'running '+ str(j), 'type': 'info', 'tgt': tgt, 'func': func,'jid':jid})
+                        {'msg': 'running '+ str(j) + '%','progress':str(j), 'type': 'info', 'tgt': tgt, 'func': func,'jid':jid,'info':info})
                     socket_emit(meta=meta, event='salt_task_warn', room=room)
+                    socket_emit(meta=meta, event='salt_task_menu', room=room)
                 if ret['return'] != [{}]:
                     redis_salt_task_sync.delay()
                     meta = json.dumps(
-                        {'msg': 'finished', 'type': 'success', 'tgt': tgt, 'func': func,'jid':jid})
+                        {'msg': 'completed','progress':'100', 'type': 'success', 'tgt': tgt, 'func': func,'jid':jid,'info':info})
                     socket_emit(meta=meta, event='salt_task_warn', room=room)
                     socket_emit(meta=meta, event='salt_task_menu', room=room)
                     rt = (rt  + i * 10)/2 if t else i * 10
