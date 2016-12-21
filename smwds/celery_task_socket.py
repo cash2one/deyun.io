@@ -489,7 +489,7 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None,in
                         {'msg': 'finished', 'type': 'success', 'tgt': tgt, 'func': func,'jid':jid})
                     socket_emit(meta=meta, event='salt_task_warn', room=room)
                     socket_emit(meta=meta, event='salt_task_menu', room=room)
-                    rt = (t  + i * 10)/2 if t else i * 10
+                    rt = (rt  + i * 10)/2 if t else i * 10
                     redisapi.hset('task_timer', str(tgt)+':'+str(func), rt)
                     break
             except PepperException as e:
@@ -557,10 +557,11 @@ def emit_salt_jid(jid, room):
 @salt_command
 def emit_salt_ping(room, tgt, func,info):
     try:
-        if redisapi.hget('salt_task_lock', room + tgt) == func:
+        if convert(redisapi.hget('salt_task_lock', room + tgt)) == func:
             meta = json.dumps({'msg': 'Task execulting.Waitting for result.',
-                               'type': 'warning', 'tgt': tgt, 'func': func, 'jid':'NONE'})
+                               'type': 'warning', 'tgt': tgt, 'func': func, 'jid':'Job Waiting','info':info})
             socket_emit(meta=meta, event='salt_task_warn', room=room)
+            return 1
         else:
             redisapi.hset('salt_task_lock', room + tgt, func)
             salt_exec_func(tgt=tgt, func='test.ping', room=room,info=info)
@@ -569,7 +570,7 @@ def emit_salt_ping(room, tgt, func,info):
     except Exception as e:
         logger.exception(e)
         meta = json.dumps({'msg': 'Task canceled for unknonw reason.Contact admin pls.',
-                           'type': 'warning', 'tgt': tgt, 'func': func,'jid':'NONE'})
+                           'type': 'warning', 'tgt': tgt, 'func': func,'jid':'Job Error','info':info})
         socket_emit(meta=meta, event='salt_task_warn', room=room)
         return 1
 
