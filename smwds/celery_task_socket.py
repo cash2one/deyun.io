@@ -44,7 +44,7 @@ from statistics import mean
 celery.config_from_object('celery_socket_config')
 
 logger = logging.getLogger('task')
-logger.setLevel(20)
+logger.setLevel(10)
 #celery, session = create_celery_app()
 
 #celery.config_from_object('prod', silent=True)
@@ -459,6 +459,7 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None,in
         socket_emit(meta=json.dumps(
             {'func': 'salt_task_list'}), event='func_init', room='all')
     except Exception as e:
+        redisapi.hdel('salt_exec_list', jid)
         meta = json.dumps({'msg': 'Saltstack API not working. Please try later.',
                            'type': 'danger', 'tgt': tgt, 'func': func, jid: 'FAIL'})
         socket_emit(meta=meta, event='salt_task_warn', room=room)
@@ -467,8 +468,8 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None,in
         return 1
     try:
         i = 0
-        t = float(convert(redisapi.hget('task_timer', func)))
-        rt = t if t else 1000
+        t = redisapi.hget('task_timer', str(tgt)+':'+str(func))
+        rt = float(convert(t)) if t else 1000
         while(i < 600):
             try:
                 i = i + 1
@@ -489,7 +490,7 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None,in
                     socket_emit(meta=meta, event='salt_task_warn', room=room)
                     socket_emit(meta=meta, event='salt_task_menu', room=room)
                     rt = (t  + i * 10)/2 if t else i * 10
-                    redisapi.hset('task_timer', func, rt)
+                    redisapi.hset('task_timer', str(tgt)+':'+str(func), rt)
                     break
             except PepperException as e:
                 pass
@@ -498,6 +499,7 @@ def salt_exec_func(tgt='*', func='test.ping', arg=None, kwarg=None, room=None,in
             # TODO timeout
             return {'failed:': {'Task Running Timeout'}}
     except Exception as e:
+        redisapi.hdel('salt_exec_list', jid)
         logger.warning('error in geting job status', e)
         logger.exception(e)
         return 1
