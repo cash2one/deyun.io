@@ -1231,8 +1231,8 @@ def db_statistics_sync():
             service_level=convert(redisapi.hgetall(
                 name='sitestatus')).get('service_level', ''),
             uptime=data['uptime'],
-            page_visit_count=data['page_visit_count'],
-            api_visit_count=data['api_visit_count']
+            page_visit_count=data.get('page_visit_count',0),
+            api_visit_count=data.get('api_visit_count',0)
         )
         db.session.add(state)
         db.session.commit()

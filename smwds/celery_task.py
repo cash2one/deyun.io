@@ -1029,7 +1029,7 @@ def redis_statistics_update():
         logger.exception(e)
         return {'failed': e}
     logger.info('Completed in updating site status')
-    emit_site_status.delay(room='all')
+    #emit_site_status.delay(room='all')
 '''
 Salt DB -> Redis
 '''
