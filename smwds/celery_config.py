@@ -12,22 +12,22 @@ CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 
 # Celery task to sync between CMDB and monitor DB
 CELERYBEAT_SCHEDULE = {
-#    'redis_salt_event_sync': {
-#        'task': 'celery_task.redis_salt_event_sync',
-#        'schedule': timedelta(seconds=3200)
-#        },
-#    'redis_salt_task_sync': {
-#        'task': 'celery_task.redis_salt_task_sync',
-#        'schedule': timedelta(seconds=3002)
-#        },
-#    'redis_statistics_update': {
-#        'task': 'celery_task.redis_statistics_update',
-#        'schedule': timedelta(seconds=120)
-#        },
-#    'db_statistics_sync': {
-#        'task': 'celery_task.db_statistics_sync',
-#        'schedule': timedelta(seconds=60 * 60 * 6)
-#        },
+    'redis_salt_event_sync': {
+        'task': 'celery_task.redis_salt_event_sync',
+        'schedule': timedelta(seconds=3200)
+        },
+    'redis_salt_task_sync': {
+        'task': 'celery_task.redis_salt_task_sync',
+        'schedule': timedelta(seconds=3002)
+        },
+    'redis_statistics_update': {
+        'task': 'celery_task.redis_statistics_update',
+        'schedule': timedelta(seconds=120)
+        },
+    'db_statistics_sync': {
+        'task': 'celery_task.db_statistics_sync',
+        'schedule': timedelta(seconds=60 * 60 * 6)
+        },
 #    'sync_ping_from_influxdb': {
 #        'task': 'celery_task.sync_ping_from_influxdb',
 #        'schedule': timedelta(seconds=300)
@@ -68,7 +68,7 @@ CELERYBEAT_SCHEDULE = {
 #        'task': 'celery_task.sync_node_from_influxdb',
 #        'schedule': timedelta(seconds=376)
 #        },
-     'redis_salt_minion_status_update': {
+    'redis_salt_minion_status_update': {
         'task': 'celery_task.redis_salt_minion_status_update',
        'schedule': timedelta(seconds=60)
         },
