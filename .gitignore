@@ -1,6 +1,7 @@
 #Celery files
 smwds/celerybeat-schedule
 smwds/celerybeat.pid
+prod.py
 
 #configration
 production.cfg
