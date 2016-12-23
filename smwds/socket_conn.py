@@ -90,7 +90,8 @@ class Socket_conn(Namespace):
             {'func': 'salt_task_list', 'room': session['room']}))
 
     def on_disconnect(self):
-        # disconnect()
+        leave_room('all')
+        disconnect()
         redisapi.hdel('websocket',session.session_id)
         #emit_hacker_list(msg='You have disconnected', room=session['room'])
         current_app.logger.info(

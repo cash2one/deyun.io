@@ -177,7 +177,7 @@ class Indb(object):
         return resp.json()
 
     def get_data_24h_groupbytime(self, table, db, host):
-        data = self.get_data_24h(table, db, host)
+        #data = self.get_data_24h(table, db, host)
         # http://123.56.195.220:8086/query?q=select+mean(value)+from+memory_percent_usedWOBuffersCaches+++where+time+%3E+now()+-+1d+and+host+%3D'Ali.master.cn00'+GROUP+BY+time(3h)&db=graphite
         url = self.api_url + '/query?q=select+mean(value)+from+' + table + \
             '+++where+time+%3E+now()+-+1d+and+host+%3D\'' + host + \
@@ -225,7 +225,10 @@ class Indb(object):
             timeo = timeArray.strftime("%H%M-%d")
             item[0] = timeo
            # item[1] = round(item[1], 2)
-            item[1] = '{:.2f}'.format(item[1])
+            if item[1] == None:
+                item[1] = 0.00
+            else:
+                item[1] = '{:.2f}'.format(item[1])
             list_date.append(timeo)
             list_lable.append(item[1])
         result = [list_lable,list_date]

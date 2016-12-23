@@ -1298,7 +1298,7 @@ def redis_statistics_update():
             Perf_Ping.node_name, func.avg(
                 Perf_Ping.ping_packet_loss).label('average')
         ).group_by('node_name').all()))
-        redisapi.hset('sitestatus', 'uptime', (datetime.utcnow() - db.session.query(
+        redisapi.hset('sitestatus', 'uptime', (datetime.datetime.utcnow() - db.session.query(
             Masterdb.create_at).first()[0]).days)
     except Exception as e:
         logger.warning('error in writing sitestatus ', e)
