@@ -7,7 +7,6 @@ source $ENV_PATH/bin/activate
 
 if [ $1 == 'run' ]; then
     echo "running"
-#    /fenghua/git/Salt-MWDS/env/bin/python /fenghua/git/Salt-MWDS/smwds/app.py &
     cd $DEYUN_PATH/smwds
     $DEYUN_PATH/env/bin/gunicorn -b 127.0.0.1:5000 --worker-class eventlet -w 1 "app:create_app()"
     echo $!  > "$DEYUN_PATH/pid.tmp"
