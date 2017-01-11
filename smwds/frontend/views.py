@@ -9,6 +9,7 @@ from node import Indb_func
 import uuid
 import hashlib
 import requests
+from utils import github
 from flask_socketio import (
     send,
     SocketIO,
@@ -81,7 +82,7 @@ def ret_index():
 
 
 @frontend.route('/')
-@frontend.route('/index')
+@frontend.route('/main')
 @login_required
 #@cache.memoize(timeout=100)
 def index():
@@ -95,6 +96,52 @@ def index():
         current_app.logger.warning(
             "Session invaild : " + str(s_id) + ' != ' + check_id)
         return redirect(url_for('frontend.logout'))
+
+@frontend.route('/github')
+def github_login():
+    redirect_uri = url_for('frontend.github_authorized', next=request.args.get('next') or 
+        request.referrer or None, _external=True)
+    print(redirect_uri)
+    # More scopes http://developer.github.com/v3/oauth/#scopes
+    params = {'redirect_uri': redirect_uri, 'scope': 'user:email'} 
+    print(github.get_authorize_url(**params))
+    return redirect(github.get_authorize_url(**params))
+
+
+# same path as on application settings page
+@frontend.route('/gcb')
+def github_authorized():
+    # check to make sure the user authorized the request
+    if not 'code' in request.args:
+        flash('You did not authorize the request')
+        return render_template('info.html'), 200
+    # make a request for the access token credentials using code
+    redirect_uri = url_for('frontend.github_authorized', _external=True)
+    data = dict(code=request.args['code'],
+        redirect_uri=redirect_uri,
+        scope='user:email,user')
+    try:
+        auth = github.get_auth_session(data=data)
+        session['token'] = auth.access_token
+        # the "me" response
+        me = auth.get('user').json()
+    except Exception as e:
+        flash(str(e))
+        return render_template('info.html'), 200
+    user = User.get_or_create(me)
+    session['username'] = user.name
+    return redirect(url_for('frontend.start', s_id=session['sid']))
+
+@frontend.route('/page')
+@login_required
+def start():
+    index_data = {
+        'user': {
+            'name': session['username'],
+            'ip': ret_ip()
+        }
+    }
+    return render_template('index.html', index_data=index_data)
 
 
 @frontend.route('/login', methods=['GET', 'POST'])

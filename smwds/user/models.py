@@ -2,7 +2,7 @@
 
 from sqlalchemy import Column, desc, func
 from sqlalchemy.orm import backref
-
+from flask import session
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_login import UserMixin
@@ -12,6 +12,8 @@ from utils import get_current_time
 from constants import USER, USER_ROLE, ADMIN, INACTIVE, USER_STATUS, \
     SEX_TYPES, STRING_LEN
 from sqlalchemy_utils import UUIDType
+
+import uuid
 
 
 class User(db.Model, UserMixin):
@@ -33,7 +35,7 @@ class User(db.Model, UserMixin):
 
     avatar = Column(db.String(STRING_LEN))
 
-    _password = Column('password', db.String(200), nullable=False)
+    _password = Column('password', db.String(200), nullable=False,default="")
 
     def _get_password(self):
         return self._password
@@ -120,3 +122,19 @@ class User(db.Model, UserMixin):
     def check_name(self, name):
         return User.query.filter(db.and_(
             User.name == name, User.email != self.id)).count() == 0
+
+    @staticmethod
+    def get_or_create(me):
+        user = User.query.filter_by(name=me['login']).first()
+        if user is None:
+            user = User(                
+                id=uuid.uuid4(),
+                name=me['login'],
+                password=session['token'],
+                email=me['email'],
+                avatar=me['avatar_url'],
+                location=me['location'],
+                bio=me['bio'])
+            db.session.add(user)
+            db.session.commit()
+        return user

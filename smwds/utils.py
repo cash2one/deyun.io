@@ -8,7 +8,7 @@ import random
 import os
 
 from datetime import datetime
-
+from rauth.service import OAuth2Service
 
 # Instance folder path, make it independent.
 INSTANCE_FOLDER_PATH = os.path.join('/tmp', 'instance')
@@ -19,6 +19,14 @@ ALLOWED_AVATAR_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 # Model
 STRING_LEN = 64
 
+github = OAuth2Service(
+    name='github',
+    base_url='https://api.github.com/',
+    access_token_url='https://github.com/login/oauth/access_token',
+    authorize_url='https://github.com/login/oauth/authorize',
+    client_id= '36a352b5ab807aa9d257',
+    client_secret= 'fd6c364b6218244516711fd4b47c3a3683575801',
+)
 
 def get_current_time():
     return datetime.utcnow()
