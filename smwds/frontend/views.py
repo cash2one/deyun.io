@@ -51,10 +51,12 @@ def testcache():
 
 def ret_ip():
     if request.headers.getlist("X-Forwarded-For"):
-        t_ip = request.headers.getlist("X-Forwarded-For")[0]
+        string_ip = request.headers.getlist("X-Forwarded-For")[0]
+        t_ip = str(string_ip).split(',')[0]
     else:
         t_ip = request.remote_addr
-    return t_ip
+    print(t_ip)
+    return str(t_ip)
 '''
 
 deprecated function for updating main page
@@ -81,7 +83,7 @@ def ret_index():
     return index_data
 
 
-@frontend.route('/')
+
 @frontend.route('/main')
 @login_required
 #@cache.memoize(timeout=100)
@@ -129,6 +131,8 @@ def github_authorized():
         flash(str(e))
         return render_template('info.html'), 200
     user = User.get_or_create(me)
+    login_user(user)
+    session['sid'] = hashlib.md5(str(user.id).encode('utf-8')).hexdigest()
     session['username'] = user.name
     return redirect(url_for('frontend.start', s_id=session['sid']))
 
@@ -143,11 +147,12 @@ def start():
     }
     return render_template('index.html', index_data=index_data)
 
-
+@frontend.route('/')
 @frontend.route('/login', methods=['GET', 'POST'])
 def login():
     # if g.user is not None and g.user.is_authenticated:
     #    return redirect(url_for('frontend.index'))
+    #return render_template('info.html'), 200
 
     form = LoginForm()
 

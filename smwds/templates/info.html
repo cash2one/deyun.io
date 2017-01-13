@@ -22,24 +22,29 @@
         <div>
             <div>
 
-                <h1 class="logo-name">Ss+</h1>
+                <h1 class="logo-name">Deyun.io</h1>
                 {% for message in get_flashed_messages() %}
                 <div class="alert alert-danger animated shake" role="alert">
                     <b>ERROR:</b> {{ message }}
                 </div>
                 {% endfor %}
             </div>
-            <h3>测试</h3>
-            <p>Perfectly designed and precisely prepared admin theme with over 50 pages with extra new web app views.
-                <!--Continually expanded and constantly improved Inspinia Admin Them (IN+)-->
-            </p>
-            <p>Login in. To see it in action.</p>
-            <p class="text-muted text-center"><small>Do not have an account?</small></p>
-            <a class="btn btn-sm btn-white btn-block" href="{{ url_for('frontend.github_login') }}">Create an account</a>
-            <p class="m-t"> <small>Inspinia we app framework base on Bootstrap 3 &copy; 2014</small> </p>
+            <h3>一个开源远程运维管理平台</h3>
+            <!--<h3>A automational OPS platform based on open-sourced projects</h3>-->
+            <p>Deyun.io是一个完全基于开源方案的分布式运维平台(开发中),可以实现在远程服务器(在NAT之后也可以)上自动化部署以及下发执行任务.</p>
+            <!--<p>Deyun.io is a open-sourced distrubted OPS solution, capable of server managerment behind NATs.</p>-->
+            <p>感谢以下主要开源组件:</p><p>SaltStack</p><p>Flask</p><p>Celery</p><p>Sensu</p><p>Socketio</p><p>Postgresql</p><p>Docker</p><p>Consul</p>
+            <p class="text-muted text-center"><small>This site powered by github oauth2 </small></p>
+            <a class="btn btn-primary block full-width m-b" href="{{ url_for('frontend.github_login') }}">Github Login</a>
+            <p class="m-t"> <small><a href="http://www.miibeian.gov.cn/">沪ICP备15006974号-2</a> Deyun.io &copy; 2016</small> </p>
         </div>
+    <ul class="list-inline social-icon">
+        <li><a  href="https://github.com/rtx3/deyun.io" target="_blank"><i class="fa fa-github"></i></a></li>
+        <li><a  href="r@rtx3.com" target="_blank"><i class="fa fa-laptop"></i></a></li>
+        <li><a  href="" target="_blank"><i class="fa fa-group"></i></a></li>
+      </ul>
     </div>
-
+    
     <!-- Mainly scripts -->
      <!--<script src="js/jquery-2.1.1.js"></script>-->
     <!-- <script src="js/bootstrap.min.js"></script>-->
