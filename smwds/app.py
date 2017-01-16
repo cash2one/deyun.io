@@ -18,9 +18,9 @@ import eventlet
 
 import os
 '''
-Enable the monkey_patch if run into a socket issue
+Disable the monkey_patch if run into a socket issue
 '''
-#eventlet.monkey_patch()
+eventlet.monkey_patch()
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
 
