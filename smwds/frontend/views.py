@@ -55,7 +55,7 @@ def ret_ip():
         t_ip = str(string_ip).split(',')[0]
     else:
         t_ip = request.remote_addr
-    print(t_ip)
+    #print(t_ip)
     return str(t_ip)
 '''
 
@@ -152,7 +152,7 @@ def start():
 def login():
     # if g.user is not None and g.user.is_authenticated:
     #    return redirect(url_for('frontend.index'))
-    #return render_template('info.html'), 200
+    return render_template('info.html'), 200
 
     form = LoginForm()
 
