@@ -2,8 +2,8 @@
 from datetime import timedelta
 # Celery configuration
 
-BROKER_URL = 'redis://localhost:6379/5'
-CELERY_BACKEND = 'redis://localhost:6379/5'
+BROKER_URL = 'redis://localhost:6379/4'
+CELERY_BACKEND = 'redis://localhost:6379/4'
 CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 #Do not use json until all seriailzer has been deployed
 #CELERY_TASK_SERIALIZER='json'
@@ -22,7 +22,7 @@ CELERYBEAT_SCHEDULE = {
         },
     'redis_statistics_update': {
         'task': 'celery_task.redis_statistics_update',
-        'schedule': timedelta(seconds=120)
+        'schedule': timedelta(seconds=140)
         },
     'db_statistics_sync': {
         'task': 'celery_task.db_statistics_sync',
@@ -30,7 +30,7 @@ CELERYBEAT_SCHEDULE = {
         },
     'sync_ping_from_influxdb': {
         'task': 'celery_task.sync_ping_from_influxdb',
-        'schedule': timedelta(seconds=300)
+        'schedule': timedelta(seconds=370)
         },
     'sync_netif_from_influxdb': {
         'task': 'celery_task.sync_netif_from_influxdb',
@@ -54,15 +54,15 @@ CELERYBEAT_SCHEDULE = {
         },
     'sync_tcp_from_influxdb': {
         'task': 'celery_task.sync_tcp_from_influxdb',
-        'schedule': timedelta(seconds=363)
+        'schedule': timedelta(seconds=463)
         },
     'sync_mem_from_influxdb': {
        'task': 'celery_task.sync_mem_from_influxdb',
-        'schedule': timedelta(seconds=350)
+        'schedule': timedelta(seconds=450)
         },
     'sync_cpu_from_influxdb': {
         'task': 'celery_task.sync_cpu_from_influxdb',
-        'schedule': timedelta(seconds=334)
+        'schedule': timedelta(seconds=434)
         },
     'sync_node_from_influxdb': {
         'task': 'celery_task.sync_node_from_influxdb',
@@ -70,15 +70,15 @@ CELERYBEAT_SCHEDULE = {
         },
     'redis_salt_minion_status_update': {
         'task': 'celery_task.redis_salt_minion_status_update',
-       'schedule': timedelta(seconds=61 * 2 )
+       'schedule': timedelta(seconds=74 * 2 )
         },
     'redis_master_status_update': {
         'task': 'celery_task.redis_master_status_update',
-        'schedule': timedelta(seconds=62 * 2)
+        'schedule': timedelta(seconds=66 * 2)
         },
     'redis_update_nodelist': {
         'task': 'celery_task.redis_update_nodelist',
-        'schedule': timedelta(seconds=60 * 2)
+        'schedule': timedelta(seconds=69 * 2)
         }
 }
 

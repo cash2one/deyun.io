@@ -60,7 +60,7 @@ class FlaskCelery(Celery):
 
 
 celery = FlaskCelery()
-
+celery_s = FlaskCelery()
 import redis
 try:
     from prod import config
