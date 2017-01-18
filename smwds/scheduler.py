@@ -6,7 +6,7 @@ import eventlet
 '''
 Enable the monkey_patch if run into a socket issue
 '''
-#eventlet.monkey_patch()
+eventlet.monkey_patch()
 
 app = create_app()
 celery_s.init_app(app)
