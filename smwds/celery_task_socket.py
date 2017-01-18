@@ -566,8 +566,9 @@ def emit_salt_ping(room, tgt, func,info):
             return 1
         else:
             redisapi.hset('salt_task_lock', room + tgt, func)
+            logger.info({'task': 'emit_salt_ping'.'room': room,'tgt': tgt})
             salt_exec_func(tgt=tgt, func='test.ping', room=room,info=info)
-            # redisapi.hdel('salt_task_lock',room+tgt)
+            redisapi.hdel('salt_task_lock',room+tgt)
             return 0
     except Exception as e:
         logger.exception(e)

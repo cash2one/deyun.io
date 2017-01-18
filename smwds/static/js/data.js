@@ -114,6 +114,6 @@ function update_sitestatus(j){
 
 namespace = '/deyunio';
 
-var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
+var socket = io.connect('https://' + document.domain + ':' + location.port + namespace);
 
 
