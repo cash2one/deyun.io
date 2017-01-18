@@ -96,3 +96,7 @@ class Socket_conn(Namespace):
         #emit_hacker_list(msg='You have disconnected', room=session['room'])
         current_app.logger.info(
             '@sid:' + str(session.session_id) + ':disconnected')
+
+    def on_error_default(self,e):
+        current_app.logger.warning('An error has occurred: ' + str(e))
+

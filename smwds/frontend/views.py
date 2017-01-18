@@ -101,8 +101,7 @@ def index():
 
 @frontend.route('/github')
 def github_login():
-    redirect_uri = url_for('frontend.github_authorized', next=request.args.get('next') or 
-        request.referrer or None, _external=True)
+    redirect_uri = url_for('frontend.github_authorized', _external=True)
     print(redirect_uri)
     # More scopes http://developer.github.com/v3/oauth/#scopes
     params = {'redirect_uri': redirect_uri, 'scope': 'user:email'} 
